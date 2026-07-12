@@ -196,6 +196,12 @@ export function supportGuoba() {
           },
         },
         {
+          field: 'panel.disableOriginalImage',
+          label: '禁止获取原图',
+          bottomHelpMessage: '开启后将禁止通过%原图获取绝区零面板原图；关闭时也仅主人可获取原图',
+          component: 'Switch',
+        },
+        {
           component: 'SOFT_GROUP_BEGIN',
           label: '提醒功能设置',
         },

@@ -3,6 +3,7 @@ import { avatar_calc } from '../model/damage/avatar.js';
 import { rulePrefix } from '../lib/common.js';
 import { ZZZPlugin } from '../lib/plugin.js';
 import settings from '../lib/settings.js';
+import _ from 'lodash';
 export class Damage extends ZZZPlugin {
     constructor() {
         super({
@@ -69,8 +70,13 @@ export class Damage extends ZZZPlugin {
         };
         const image = await this.render('panel/damage.html', finalData, { retType: 'base64' });
         const res = await this.reply(image);
-        if (res?.message_id && parsedData.role_icon)
-            await redis.set(`ZZZ:PANEL:IMAGE:${res.message_id}`, parsedData.role_icon, { EX: 3600 * 3 });
+        const messageId = res?.message_id || res?.messageId || res?.data?.message_id || res?.[0]?.message_id || res?.[0]?.data?.message_id;
+        if (parsedData.role_icon && !_.get(settings.getConfig('panel'), 'disableOriginalImage', false)) {
+            if (messageId)
+                await redis.set(`ZZZ:PANEL:IMAGE:${messageId}`, parsedData.role_icon, { EX: 3600 * 3 });
+            if (this.e?.group_id && this.e?.user_id)
+                await redis.set(`ZZZ:PANEL:IMAGE:GROUP:${this.e.group_id}:USER:${this.e.user_id}`, parsedData.role_icon, { EX: 3600 * 3 });
+        }
     }
 }
 //# sourceMappingURL=damage.js.map

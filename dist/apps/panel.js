@@ -205,10 +205,15 @@ export class Panel extends ZZZPlugin {
         }) : needImg;
         if (reply) {
             const res = await this.reply(image);
-            if (res?.message_id && parsedData.role_icon)
-                await redis.set(`ZZZ:PANEL:IMAGE:${res.message_id}`, parsedData.role_icon, {
-                    EX: 3600 * 3
-                });
+            const messageId = res?.message_id || res?.messageId || res?.data?.message_id || res?.[0]?.message_id || res?.[0]?.data?.message_id;
+            if (parsedData.role_icon && !_.get(settings.getConfig('panel'), 'disableOriginalImage', false)) {
+                if (messageId)
+                    await redis.set(`ZZZ:PANEL:IMAGE:${messageId}`, parsedData.role_icon, {
+                        EX: 3600 * 3
+                    });
+                if (this.e?.group_id && this.e?.user_id)
+                    await redis.set(`ZZZ:PANEL:IMAGE:GROUP:${this.e.group_id}:USER:${this.e.user_id}`, parsedData.role_icon, { EX: 3600 * 3 });
+            }
             return {
                 message: res,
                 image
@@ -256,6 +261,12 @@ export class Panel extends ZZZPlugin {
         await this.render('proficiency/index.html', finalData);
     }
     async getCharOriImage() {
+        if (_.get(settings.getConfig('panel'), 'disableOriginalImage', false)) {
+            return this.reply('已禁止获取绝区零面板原图');
+        }
+        if (!this.e.isMaster) {
+            return this.reply('仅限主人获取绝区零面板原图', false, { at: true, recallMsg: 100 });
+        }
         let source;
         if (this.e.getReply) {
             source = await this.e.getReply();
@@ -272,7 +283,10 @@ export class Panel extends ZZZPlugin {
         if (!id) {
             return this.reply('未找到消息源，请引用要查看的图片');
         }
-        const image = await redis.get(`ZZZ:PANEL:IMAGE:${id}`);
+        let image = await redis.get(`ZZZ:PANEL:IMAGE:${id}`);
+        if (!image && this.e?.group_id && this.e?.user_id) {
+            image = await redis.get(`ZZZ:PANEL:IMAGE:GROUP:${this.e.group_id}:USER:${this.e.user_id}`);
+        }
         if (!image) {
             return this.reply('未找到原图');
         }
