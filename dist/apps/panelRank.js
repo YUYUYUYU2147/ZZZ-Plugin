@@ -25,13 +25,25 @@ function damageBonus(data) {
   return item ? `${item.property_name.replace('伤害加成', '伤')} ${item.final || '-'}` : '';
 }
 
+function damageItem(data) {
+  const text = damageBonus(data);
+  if (!text) return null;
+  const idx = text.lastIndexOf(' ');
+  return idx > 0
+    ? { name: text.slice(0, idx), value: text.slice(idx + 1) }
+    : { name: '伤害加成', value: text };
+}
+
 function getScore(data) {
   const raw = _.get(data, 'equip_plan_info.equip_rating_score', 0);
   return Number(raw) || 0;
 }
 
 function getRating(data) {
-  return String(_.get(data, 'equip_plan_info.equip_rating', 'ER_Default')).replace(/^ER_/, '').replace(/_/g, '+');
+  return String(_.get(data, 'equip_plan_info.equip_rating', 'ER_Default'))
+    .replace(/^ER_/, '')
+    .replace(/_Plus$/i, '+')
+    .replace(/_/g, '');
 }
 
 function getName(data) {
@@ -50,13 +62,41 @@ function statLine(data) {
 }
 
 function statItems(data) {
-  return [
-    { name: '攻击', value: prop(data, '攻击力') },
-    { name: '双暴', value: `${prop(data, '暴击率')}/${prop(data, '暴击伤害')}` },
-    { name: '异常', value: `${prop(data, '异常掌控')}/${prop(data, '异常精通')}` },
-    { name: '冲击', value: prop(data, '冲击力') },
-    { name: '伤害加成', value: damageBonus(data) || '-' },
-  ];
+  const effectiveText = (data?.equip_plan_info?.plan_effective_property_list || [])
+    .map(v => `${v.full_name || ''}${v.name || ''}`)
+    .join('/');
+  const items = [];
+  const add = (name, value) => {
+    if (value === undefined || value === null || value === '') return;
+    if (!items.some(v => v.name === name)) items.push({ name, value });
+  };
+  const dmg = damageItem(data);
+  const has = reg => reg.test(effectiveText);
+  if (has(/生命/)) {
+    add('生命', prop(data, '生命值'));
+    add('攻击', prop(data, '攻击力'));
+    add('暴击率', prop(data, '暴击率'));
+    add('暴击伤害', prop(data, '暴击伤害'));
+  } else if (has(/异常/)) {
+    add('攻击', prop(data, '攻击力'));
+    add('异常掌控', prop(data, '异常掌控'));
+    add('异常精通', prop(data, '异常精通'));
+    if (dmg) add(dmg.name, dmg.value);
+    add('穿透值', prop(data, '穿透值'));
+  } else if (has(/冲击/)) {
+    add('冲击', prop(data, '冲击力'));
+    add('攻击', prop(data, '攻击力'));
+    add('暴击率', prop(data, '暴击率'));
+    add('暴击伤害', prop(data, '暴击伤害'));
+  } else {
+    add('攻击', prop(data, '攻击力'));
+    add('暴击率', prop(data, '暴击率'));
+    add('暴击伤害', prop(data, '暴击伤害'));
+  }
+  if (dmg) add(dmg.name, dmg.value);
+  add('穿透值', prop(data, '穿透值'));
+  add('冲击', prop(data, '冲击力'));
+  return items.slice(0, 5);
 }
 
 function viewRecord(v, rank, selfUid = '') {
@@ -143,6 +183,7 @@ export class PanelRank extends ZZZPlugin {
         rating: getRating(v.data),
         valid: _.get(v.data, 'equip_plan_info.valid_property_cnt', 0),
       }))
+      .filter(v => v.score > 0)
       .sort((a, b) => b.score - a.score || b.valid - a.valid || parseNum(prop(b.data, '攻击力')) - parseNum(prop(a.data, '攻击力')));
     return { resolved, list };
   }
