@@ -80,7 +80,8 @@ export class PanelRank extends ZZZPlugin {
       name: '[ZZZ-Plugin]PanelRank',
       dsc: '绝区零角色面板排名/极限面板',
       event: 'message',
-      priority: _.get(settings.getConfig('priority'), 'panelRank', 80),
+      // 需要比普通“xx面板”更早处理，否则“雨果极限面板”会被面板指令当成“雨果极限”的普通面板吃掉。
+      priority: _.get(settings.getConfig('priority'), 'panelRank', 60),
       rule: [
         {
           reg: `${PREFIX}.+极限面板$`,
