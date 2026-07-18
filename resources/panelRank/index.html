@@ -1,0 +1,67 @@
+{{extend defaultLayout}}
+
+{{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{@sys.currentPath}}/index.css">
+{{/block}}
+
+{{block 'main'}}
+<div class="rank-card">
+  <div class="hero">
+    <div class="hero-left">
+      <div class="eyebrow">ZZZ PANEL {{mode === 'limit' ? 'LIMIT' : 'RANK'}}</div>
+      <div class="title">{{title}}</div>
+      <div class="subtitle">{{subtitle}}</div>
+    </div>
+    <div class="hero-right">
+      <div class="count">{{count}}</div>
+      <div class="count-label">本地面板</div>
+    </div>
+  </div>
+
+  <div class="record-list">
+    {{each records item i}}
+    <div class="record rank-{{item.rank}} {{item.self ? 'self' : ''}}">
+      <div class="rank-no">{{item.rank}}</div>
+      <div class="avatar-wrap">
+        {{if item.icon}}
+        <img src="{{item.icon}}" />
+        {{/if}}
+      </div>
+      <div class="main-info">
+        <div class="topline">
+          <span class="uid">UID {{item.uid}}</span>
+          {{if item.self}}<span class="self-tag">自己</span>{{/if}}
+          {{if item.weapon}}<span class="weapon">{{item.weapon}}</span>{{/if}}
+        </div>
+        <div class="stats">
+          {{each item.stats st}}
+          <div class="stat">
+            <span class="stat-name">{{st.name}}</span>
+            <span class="stat-value">{{st.value}}</span>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+      <div class="score-box">
+        <div class="score">{{item.score}}</div>
+        <div class="rating">{{item.rating}}</div>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+
+  {{if mode === 'limit'}}
+  <div class="limit-box">
+    <div class="limit-title">简版极限目标</div>
+    <div class="limit-score">100<span>分 S+</span></div>
+    <div class="limit-desc">当前参考还可提升约 {{improve}} 分；按米游社养成方案评分估算，后续可继续细化角色专属权重。</div>
+  </div>
+  {{/if}}
+
+  <div class="notes">
+    {{each notes note}}
+    <div>※ {{note}}</div>
+    {{/each}}
+  </div>
+</div>
+{{/block}}

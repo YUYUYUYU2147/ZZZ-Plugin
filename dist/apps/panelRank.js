@@ -49,6 +49,29 @@ function statLine(data) {
   return parts.join('｜');
 }
 
+function statItems(data) {
+  return [
+    { name: '攻击', value: prop(data, '攻击力') },
+    { name: '双暴', value: `${prop(data, '暴击率')}/${prop(data, '暴击伤害')}` },
+    { name: '异常', value: `${prop(data, '异常掌控')}/${prop(data, '异常精通')}` },
+    { name: '冲击', value: prop(data, '冲击力') },
+    { name: '伤害加成', value: damageBonus(data) || '-' },
+  ];
+}
+
+function viewRecord(v, rank, selfUid = '') {
+  return {
+    rank,
+    uid: v.uid,
+    self: !!selfUid && String(v.uid) === String(selfUid),
+    score: v.score.toFixed(2),
+    rating: v.rating,
+    weapon: v.data?.weapon?.name || '',
+    icon: v.data?.role_square_url || v.data?.skin_list?.find(s => s.unlocked)?.skin_square_url || '',
+    stats: statItems(v.data),
+  };
+}
+
 function loadAllPanelRecords() {
   const dir = path.join(dataPath, 'panel');
   if (!fs.existsSync(dir)) return [];
@@ -124,11 +147,19 @@ export class PanelRank extends ZZZPlugin {
     if (!resolved) return false;
     if (!list.length) return this.reply(`暂无【${resolved.name}】面板排名数据，请先让大家使用 %zzz更新面板 或 %zzz更新展柜面板。`);
     const maxDisplay = Math.max(1, Math.min(Number(_.get(settings.getConfig('rank'), 'max_display', 15)) || 15, 20));
-    const lines = list.slice(0, maxDisplay).map((v, i) => {
-      const weapon = v.data?.weapon?.name ? `｜${v.data.weapon.name}` : '';
-      return `${i + 1}. UID ${v.uid}｜${v.score.toFixed(2)}分 ${v.rating}${weapon}\n   ${statLine(v.data)}`;
+    const uid = '';
+    const records = list.slice(0, maxDisplay).map((v, i) => viewRecord(v, i + 1, uid));
+    return this.render('panelRank/index.html', {
+      mode: 'rank',
+      title: `${resolved.name}面板排名`,
+      subtitle: '按米游社养成方案评分排序；未更新面板不参与排名',
+      count: list.length,
+      records,
+      notes: [
+        '排名数据来自本地已保存面板，请先使用 %zzz更新面板 或 %zzz更新展柜面板。',
+        '同分时按有效词条数、攻击力做简易排序。'
+      ]
     });
-    return this.reply(`【${resolved.name}面板排名】共 ${list.length} 份本地面板\n${lines.join('\n')}\n\n说明：按米游社养成方案评分排序；没有更新面板的人不会参与排名。`);
   }
 
   async limitPanel() {
@@ -144,9 +175,20 @@ export class PanelRank extends ZZZPlugin {
     const targetScore = 100;
     const base = own || best;
     const improve = Math.max(0, targetScore - base.score);
-    const ownText = own
-      ? `当前：第 ${ownIndex + 1}/${list.length}｜${own.score.toFixed(2)}分 ${own.rating}\n${statLine(own.data)}`
-      : `当前：未找到你的【${resolved.name}】本地面板，以下展示本地最高参考。`;
-    return this.reply(`【${resolved.name}极限面板】\n${ownText}\n\n本地最高：UID ${best.uid}｜${best.score.toFixed(2)}分 ${best.rating}\n${statLine(best.data)}\n\n简版极限目标：100分 S+\n当前参考还可提升：约 ${improve.toFixed(2)} 分\n说明：先按米游社养成方案评分估算，后续可以继续细化成每个代理人的专属权重。`);
+    const records = [];
+    if (own) records.push(viewRecord(own, ownIndex + 1, uid));
+    if (!own || own.uid !== best.uid) records.push(viewRecord(best, 1, uid));
+    return this.render('panelRank/index.html', {
+      mode: 'limit',
+      title: `${resolved.name}极限面板`,
+      subtitle: own ? `当前第 ${ownIndex + 1}/${list.length}，并展示本地最高参考` : '未找到你的本地面板，展示本地最高参考',
+      count: list.length,
+      records,
+      improve: improve.toFixed(2),
+      notes: [
+        '简版极限面板先按米游社养成方案评分估算。',
+        '后续可以继续细化为每个代理人的专属权重与有效词条算法。'
+      ]
+    });
   }
 }
