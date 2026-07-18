@@ -35,8 +35,16 @@ export class Panel extends ZZZPlugin {
     async handleRule() {
         if (!this.e.msg)
             return;
-        // 交给 PanelRank 处理，避免“雨果极限面板”被识别成“雨果极限”的普通面板。
-        if (/(极限面板|面板排名|排名)$/.test(this.e.msg))
+        // “雨果极限面板”会先命中普通面板规则，这里直接转交给 PanelRank，避免被当成“雨果极限”的普通面板。
+        if (/极限面板$/.test(this.e.msg)) {
+            const { PanelRank } = await import('./panelRank.js');
+            const app = new PanelRank();
+            app.e = this.e;
+            app.reply = this.reply.bind(this);
+            return app.limitPanel();
+        }
+        // 其它排名类指令交给 PanelRank/Rank 处理。
+        if (/(面板排名|排名)$/.test(this.e.msg))
             return false;
         const reg = new RegExp(`${rulePrefix}(.*?)(?:展柜)?面板(?:展柜)?(刷新|更新|列表)?$`);
         const match = this.e.msg.match(reg);
