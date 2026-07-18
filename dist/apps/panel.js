@@ -35,6 +35,9 @@ export class Panel extends ZZZPlugin {
     async handleRule() {
         if (!this.e.msg)
             return;
+        // 交给 PanelRank 处理，避免“雨果极限面板”被识别成“雨果极限”的普通面板。
+        if (/(极限面板|面板排名|排名)$/.test(this.e.msg))
+            return false;
         const reg = new RegExp(`${rulePrefix}(.*?)(?:展柜)?面板(?:展柜)?(刷新|更新|列表)?$`);
         const match = this.e.msg.match(reg);
         if (!match)
