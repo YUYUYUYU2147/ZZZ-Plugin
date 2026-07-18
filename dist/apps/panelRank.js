@@ -91,6 +91,8 @@ function loadAllPanelRecords() {
 
 function queryName(msg = '', suffix = '排名') {
   return String(msg || '')
+    // 兼容 TRSS/机器人别名场景，日志里可能显示成 q%xxx，但真正指令从 %/#/ 开始。
+    .replace(/^[^#%/]*(?=[#%/])/, '')
     .replace(new RegExp(PREFIX), '')
     .replace(/^(面板)?排名/, '')
     .replace(new RegExp(`(面板)?${suffix}$`), '')
@@ -119,7 +121,11 @@ export class PanelRank extends ZZZPlugin {
   }
 
   resolveChar(name) {
-    const clean = String(name || '').replace(/代理人|角色/g, '').trim();
+    const clean = String(name || '')
+      .replace(/^[^#%/]*(?=[#%/])/, '')
+      .replace(new RegExp(PREFIX), '')
+      .replace(/代理人|角色/g, '')
+      .trim();
     if (!clean || BATTLE_RANK_WORDS.test(clean)) return null;
     const id = char.aliasToId(clean);
     if (!id) return null;
