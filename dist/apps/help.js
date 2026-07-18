@@ -129,6 +129,13 @@ const helpData = [
                 needSK: false,
                 commands: ['练度', '练度统计'],
             },
+            {
+                title: '角色面板排名',
+                desc: '按本地已保存面板的米游社养成方案评分进行角色排名，并给出简版极限面板参考',
+                needCK: false,
+                needSK: false,
+                commands: ['角色名+排名', '角色名+面板排名', '角色名+极限面板'],
+            },
         ],
     },
     {
