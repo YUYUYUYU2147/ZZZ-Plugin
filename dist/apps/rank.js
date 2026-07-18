@@ -17,35 +17,35 @@ export class Rank extends ZZZPlugin {
             priority: _.get(settings.getConfig('priority'), 'rank', 70),
             rule: [
                 {
-                    reg: `${rulePrefix}(式舆防卫战|式舆|深渊|防卫战|防卫)排名$`,
+                    reg: `${rulePrefix}(式舆防卫战|式舆|深渊|防卫战|防卫)(群内|群)?排名$`,
                     fnc: 'abyssRank'
                 },
                 {
-                    reg: `${rulePrefix}(危局强袭战|危局|强袭|强袭战)排名$`,
+                    reg: `${rulePrefix}(危局强袭战|危局|强袭|强袭战)(群内|群)?排名$`,
                     fnc: 'deadlyRank'
                 },
                 {
-                    reg: `${rulePrefix}(临界推演|临界|推演)排名$`,
+                    reg: `${rulePrefix}(临界推演|临界|推演)(群内|群)?排名$`,
                     fnc: 'voidFrontBattleRank'
                 },
                 {
-                    reg: `${rulePrefix}(爬塔|鏖战)排名$`,
+                    reg: `${rulePrefix}(爬塔|鏖战)(群内|群)?排名$`,
                     fnc: 'climbingTowerHelp'
                 },
                 {
-                    reg: `${rulePrefix}(爬塔S1|爬塔s1|拟真鏖战试炼)排名$`,
+                    reg: `${rulePrefix}(爬塔S1|爬塔s1|拟真鏖战试炼)(群内|群)?排名$`,
                     fnc: 'climbingTowerS1'
                 },
                 {
-                    reg: `${rulePrefix}(爬塔S2|爬塔s2|鏖战试炼末路|鏖战试炼：末路|鏖战试炼:末路)排名$`,
+                    reg: `${rulePrefix}(爬塔S2|爬塔s2|鏖战试炼末路|鏖战试炼：末路|鏖战试炼:末路)(群内|群)?排名$`,
                     fnc: 'climbingTowerS2'
                 },
                 {
-                    reg: `${rulePrefix}(爬塔S3|爬塔s3|鏖战试炼荣耀|鏖战试炼：荣耀|鏖战试炼:荣耀)排名$`,
+                    reg: `${rulePrefix}(爬塔S3|爬塔s3|鏖战试炼荣耀|鏖战试炼：荣耀|鏖战试炼:荣耀)(群内|群)?排名$`,
                     fnc: 'climbingTowerS3'
                 },
                 {
-                    reg: `${rulePrefix}(爬塔S4|爬塔s4|鏖战试炼狂澜|鏖战试炼：狂澜|鏖战试炼:狂澜)排名$`,
+                    reg: `${rulePrefix}(爬塔S4|爬塔s4|鏖战试炼狂澜|鏖战试炼：狂澜|鏖战试炼:狂澜)(群内|群)?排名$`,
                     fnc: 'climbingTowerS4'
                 },
                 {
