@@ -227,37 +227,20 @@ export class PanelRank extends ZZZPlugin {
     const name = queryName(this.e.msg, '极限面板');
     const { resolved, list } = this.getRoleRecords(name);
     if (!resolved) return false;
-    if (!list.length) return this.reply(`暂无【${resolved.name}】面板数据，请先 %zzz更新面板。`);
-    let uid = '';
-    try { uid = await this.getUID(); } catch (_) { uid = ''; }
-    const ownIndex = uid ? list.findIndex(v => String(v.uid) === String(uid)) : -1;
-    const own = ownIndex >= 0 ? list[ownIndex] : null;
+    if (!list.length) return this.reply(`暂无【${resolved.name}】极限面板参考数据，请先 %zzz更新面板。`);
+
+    // 参考喵喵“xx极限面板”：不是输出排名榜，而是取该角色本地最高评分面板，按普通角色面板样式渲染。
+    // 目前 ZZZ-Plugin 暂无内置理论极限预设库，先用本地最高面板作为极限参考。
     const best = list[0];
-    const targetScore = 100;
-    const base = own || best;
-    const improve = Math.max(0, targetScore - base.score);
-    const records = [];
-    if (own) {
-      const current = viewRecord(own, ownIndex + 1, uid);
-      current.label = '当前面板';
-      records.push(current);
-    }
-    if (!own || own.uid !== best.uid) {
-      const bestRecord = viewRecord(best, 1, uid);
-      bestRecord.label = '极限参考';
-      records.push(bestRecord);
-    }
-    return this.render('panelRank/index.html', {
-      mode: 'limit',
-      title: `${resolved.name}极限面板`,
-      subtitle: own ? '展示你的当前面板与本地极限参考' : '未找到你的本地面板，展示本地极限参考',
-      count: list.length,
-      records,
-      improve: improve.toFixed(2),
-      notes: [
-        '简版极限面板先按米游社养成方案评分估算。',
-        '后续可以继续细化为每个代理人的专属权重与有效词条算法。'
-      ]
+    const { Panel } = await import('./panel.js');
+    const app = new Panel();
+    app.e = this.e;
+    return app.getCharPanelTool(this.e, {
+      uid: '100000000',
+      data: best.data,
+      needSave: false,
+      reply: true,
+      needImg: true
     });
   }
 }
