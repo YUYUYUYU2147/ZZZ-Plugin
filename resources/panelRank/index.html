@@ -5,7 +5,7 @@
 {{/block}}
 
 {{block 'main'}}
-<div class="rank-card">
+<div class="rank-card {{mode === 'limit' ? 'limit-mode' : ''}}">
   <div class="hero">
     <div class="hero-left">
       <div class="eyebrow">ZZZ PANEL {{mode === 'limit' ? 'LIMIT' : 'RANK'}}</div>
@@ -21,7 +21,7 @@
   <div class="record-list">
     {{each records item i}}
     <div class="record rank-{{item.rank}} {{item.self ? 'self' : ''}}">
-      <div class="rank-no">{{item.rank}}</div>
+      <div class="rank-no">{{mode === 'limit' ? item.label : item.rank}}</div>
       <div class="avatar-wrap">
         {{if item.icon}}
         <img src="{{item.icon}}" />

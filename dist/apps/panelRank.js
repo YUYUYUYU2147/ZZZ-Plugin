@@ -237,12 +237,20 @@ export class PanelRank extends ZZZPlugin {
     const base = own || best;
     const improve = Math.max(0, targetScore - base.score);
     const records = [];
-    if (own) records.push(viewRecord(own, ownIndex + 1, uid));
-    if (!own || own.uid !== best.uid) records.push(viewRecord(best, 1, uid));
+    if (own) {
+      const current = viewRecord(own, ownIndex + 1, uid);
+      current.label = '当前面板';
+      records.push(current);
+    }
+    if (!own || own.uid !== best.uid) {
+      const bestRecord = viewRecord(best, 1, uid);
+      bestRecord.label = '极限参考';
+      records.push(bestRecord);
+    }
     return this.render('panelRank/index.html', {
       mode: 'limit',
       title: `${resolved.name}极限面板`,
-      subtitle: own ? `当前第 ${ownIndex + 1}/${list.length}，并展示本地最高参考` : '未找到你的本地面板，展示本地最高参考',
+      subtitle: own ? '展示你的当前面板与本地极限参考' : '未找到你的本地面板，展示本地极限参考',
       count: list.length,
       records,
       improve: improve.toFixed(2),
