@@ -230,14 +230,22 @@ export class PanelRank extends ZZZPlugin {
 
     const superCfg = settings.getConfig('super_panel') || {};
     const superData = superCfg[resolved.name];
-    if (superData) {
-      const best = list[0];
-      return this.render('superPanel/index.html', {
-        ...superData,
-        icon: best?.data?.role_icon || best?.data?.role_square_url || '',
+    if (superData?.source_uid) {
+      const preset = loadAllPanelRecords()
+        .find(v => String(v.uid) === String(superData.source_uid) && Number(v.data?.id) === Number(resolved.id));
+      if (!preset) return this.reply(`【${resolved.name}】理论极限预设源 UID ${superData.source_uid} 未找到面板数据。`);
+      const { Panel } = await import('./panel.js');
+      const app = new Panel();
+      app.e = this.e;
+      return app.getCharPanelTool(this.e, {
+        uid: '100000000',
+        data: preset.data,
+        needSave: false,
+        reply: true,
+        needImg: true
       });
     }
 
-    return this.reply(`暂无【${resolved.name}】理论极限面板预设。需要先在 ZZZ-Plugin/defSet/super_panel.yaml 补充该角色数据。`);
+    return this.reply(`暂无【${resolved.name}】理论极限面板预设。需要先在 ZZZ-Plugin/config/super_panel.yaml 配置 source_uid。`);
   }
 }
