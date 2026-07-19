@@ -147,11 +147,20 @@ export class PanelRank extends ZZZPlugin {
       dsc: '绝区零角色面板排名/极限面板',
       event: 'message',
       // 需要比普通“xx面板”更早处理，否则“雨果极限面板”会被面板指令当成“雨果极限”的普通面板吃掉。
-      priority: _.get(settings.getConfig('priority'), 'panelRank', 60),
+      priority: _.get(settings.getConfig('priority'), 'panelRank', -1000),
       rule: [
+        // 明确的 zzz/绝区零前缀规则放最前面，并用极高优先级抢在喵喵/xhh 的通用“极限面板”前处理。
+        {
+          reg: '^.*?(#|%|/)?(?:zzz|ZZZ|绝区零)\\s*.+极限面板$',
+          fnc: 'limitPanel'
+        },
         {
           reg: `${PREFIX}.+极限面板$`,
           fnc: 'limitPanel'
+        },
+        {
+          reg: '^.*?(#|%|/)?(?:zzz|ZZZ|绝区零)\\s*.+(面板)?排名$',
+          fnc: 'panelRank'
         },
         {
           reg: `${PREFIX}.+(面板)?排名$`,
