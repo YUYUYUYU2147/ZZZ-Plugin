@@ -8,6 +8,7 @@ import settings from '../lib/settings.js';
 import { isRankPermissionAllowed } from '../lib/rank.js';
 
 const PREFIX = '^(#|%|/)?(?:zzz|ZZZ|绝区零)?\\s*';
+const ZZZ_ALIAS_PREFIX = /^(?:zzz|ZZZ|绝区零)+\s*/;
 const BATTLE_RANK_WORDS = /^(式舆防卫战|式舆|深渊|防卫战|防卫|危局强袭战|危局|强袭|强袭战|临界推演|临界|推演|爬塔|鏖战|爬塔S\\d|爬塔s\\d)/;
 
 function parseNum(val = '') {
@@ -130,13 +131,21 @@ function loadAllPanelRecords() {
   return records;
 }
 
-function queryName(msg = '', suffix = '排名') {
+function cleanZzzQuery(msg = '') {
   return String(msg || '')
     // 兼容 TRSS/机器人别名场景，日志里可能显示成 q%xxx，但真正指令从 %/#/ 开始。
     .replace(/^[^#%/]*(?=[#%/])/, '')
     .replace(new RegExp(PREFIX), '')
+    // TRSS 的 only_reply_at 会把 “%zzz雨果...” 先改成 “#绝区零zzz雨果...”，这里再清一次残留前缀。
+    .replace(ZZZ_ALIAS_PREFIX, '')
+    .trim();
+}
+
+function queryName(msg = '', suffix = '排名') {
+  return cleanZzzQuery(msg)
     .replace(/^(面板)?排名/, '')
     .replace(new RegExp(`(面板)?${suffix}$`), '')
+    .replace(ZZZ_ALIAS_PREFIX, '')
     .trim();
 }
 
@@ -147,11 +156,11 @@ export class PanelRank extends ZZZPlugin {
       dsc: '绝区零角色面板排名/极限面板',
       event: 'message',
       // 需要比普通“xx面板”更早处理，否则“雨果极限面板”会被面板指令当成“雨果极限”的普通面板吃掉。
-      priority: _.get(settings.getConfig('priority'), 'panelRank', -1000),
+      priority: _.get(settings.getConfig('priority'), 'panelRank', -10000),
       rule: [
         // 明确的 zzz/绝区零前缀规则放最前面，并用极高优先级抢在喵喵/xhh 的通用“极限面板”前处理。
         {
-          reg: '^.*?(#|%|/)?(?:zzz|ZZZ|绝区零)\\s*.+极限面板$',
+          reg: '^.*?(#|%|/)?(?:zzz|ZZZ|绝区零)+(?:zzz|ZZZ|绝区零)?\\s*.+极限面板$',
           fnc: 'limitPanel'
         },
         {
@@ -159,7 +168,7 @@ export class PanelRank extends ZZZPlugin {
           fnc: 'limitPanel'
         },
         {
-          reg: '^.*?(#|%|/)?(?:zzz|ZZZ|绝区零)\\s*.+(面板)?排名$',
+          reg: '^.*?(#|%|/)?(?:zzz|ZZZ|绝区零)+(?:zzz|ZZZ|绝区零)?\\s*.+(面板)?排名$',
           fnc: 'panelRank'
         },
         {
@@ -174,6 +183,7 @@ export class PanelRank extends ZZZPlugin {
     const clean = String(name || '')
       .replace(/^[^#%/]*(?=[#%/])/, '')
       .replace(new RegExp(PREFIX), '')
+      .replace(ZZZ_ALIAS_PREFIX, '')
       .replace(/代理人|角色/g, '')
       .trim();
     if (!clean || BATTLE_RANK_WORDS.test(clean)) return null;
