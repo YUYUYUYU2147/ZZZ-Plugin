@@ -1,0 +1,30 @@
+body { width: 720px; }
+.super-card { margin: 0; padding: 22px; color: #fff; min-height: 1180px; background: radial-gradient(circle at 20% 8%, rgba(255,255,255,.16), transparent 28%), linear-gradient(180deg,#342060,#160d2f 55%,#11091f); font-family: sans-serif; }
+.header { display:flex; align-items:flex-start; min-height:210px; position:relative; }
+.portrait { width:230px; height:230px; overflow:hidden; border-radius:26px; background:rgba(255,255,255,.08); }
+.portrait img { width:100%; height:100%; object-fit:cover; }
+.title { flex:1; text-align:right; padding-top:12px; }
+.name { font-size:46px; font-weight:900; font-style:italic; text-shadow:0 4px 12px #000; }
+.meta { margin-top:12px; font-size:22px; font-weight:800; }
+.meta span { background:#d95333; border-radius:8px; padding:2px 8px; margin-left:8px; }
+.panel { border:1px solid rgba(255,255,255,.35); border-radius:10px; padding:16px; margin-top:8px; background:rgba(30,16,55,.62); }
+.skills { display:flex; justify-content:flex-end; gap:26px; margin-bottom:12px; }
+.skill { width:74px; height:74px; border-radius:50%; background:radial-gradient(circle,#fff,#8661ff 58%,#4b278f); display:flex; align-items:center; justify-content:center; text-align:center; color:#1f1238; font-size:13px; font-weight:800; box-shadow:0 0 18px #9b6cff; }
+.skill b { font-size:22px; color:#111; }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.stat { display:flex; justify-content:space-between; padding:8px 12px; background:rgba(0,0,0,.24); border-radius:8px; font-size:22px; }
+.stat b { font-size:24px; font-style:italic; }
+.score-row { display:grid; grid-template-columns:220px 1fr; gap:12px; margin-top:16px; }
+.score,.weapon { background:rgba(20,20,30,.86); border-radius:10px; padding:14px; }
+.score span { display:block; color:#d8c8ff; }
+.score b { font-size:48px; margin-right:8px; }
+.score em { color:#ff576f; font-size:32px; font-weight:900; }
+.weapon b { font-size:24px; display:block; }.weapon span { color:#ffed9b; font-weight:800; }.weapon p { margin:8px 0 0; color:#eee; }
+.disc-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
+.disc { background:rgba(43,28,65,.86); border:1px solid rgba(255,255,255,.16); border-radius:12px; padding:12px; min-height:150px; }
+.disc-title { font-size:22px; font-weight:900; }.disc-title span { float:right; color:#ffe27a; }.disc-score { color:#ff637a; font-size:20px; font-weight:900; }.main-stat { margin:8px 0; color:#fff4b0; font-size:20px; font-weight:800; }.sub { font-size:17px; margin-top:4px; color:#eee; }
+.damage { margin-top:18px; background:rgba(16,16,24,.9); border:1px solid rgba(255,255,255,.18); border-radius:12px; overflow:hidden; }
+.damage-title { padding:14px 16px; font-size:22px; font-weight:900; color:#f1d794; }.damage-title span { font-size:15px; color:#aaa; margin-left:12px; }
+.damage-head,.damage-row { display:grid; grid-template-columns:1.4fr 1fr 1fr; border-top:1px solid rgba(255,255,255,.12); }
+.damage-head span,.damage-row span,.damage-row b { padding:12px; text-align:center; }.damage-head { color:#d7c08a; }.damage-row b { font-size:22px; }
+.footer { margin-top:18px; text-align:center; font-size:16px; color:rgba(255,255,255,.75); font-weight:800; font-style:italic; }

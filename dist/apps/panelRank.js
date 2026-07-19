@@ -227,20 +227,17 @@ export class PanelRank extends ZZZPlugin {
     const name = queryName(this.e.msg, '极限面板');
     const { resolved, list } = this.getRoleRecords(name);
     if (!resolved) return false;
-    if (!list.length) return this.reply(`暂无【${resolved.name}】极限面板参考数据，请先 %zzz更新面板。`);
 
-    // 参考喵喵“xx极限面板”：不是输出排名榜，而是取该角色本地最高评分面板，按普通角色面板样式渲染。
-    // 目前 ZZZ-Plugin 暂无内置理论极限预设库，先用本地最高面板作为极限参考。
-    const best = list[0];
-    const { Panel } = await import('./panel.js');
-    const app = new Panel();
-    app.e = this.e;
-    return app.getCharPanelTool(this.e, {
-      uid: '100000000',
-      data: best.data,
-      needSave: false,
-      reply: true,
-      needImg: true
-    });
+    const superCfg = settings.getConfig('super_panel') || {};
+    const superData = superCfg[resolved.name];
+    if (superData) {
+      const best = list[0];
+      return this.render('superPanel/index.html', {
+        ...superData,
+        icon: best?.data?.role_icon || best?.data?.role_square_url || '',
+      });
+    }
+
+    return this.reply(`暂无【${resolved.name}】理论极限面板预设。需要先在 ZZZ-Plugin/defSet/super_panel.yaml 补充该角色数据。`);
   }
 }
