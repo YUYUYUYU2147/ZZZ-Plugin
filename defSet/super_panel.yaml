@@ -7,9 +7,11 @@
   skill_level: 16
   core_level: 7
   weapon_star: 5
+  max_drive: true
 雨果:
   source_uid: '10749301'
   rank: 6
   skill_level: 16
   core_level: 7
   weapon_star: 5
+  max_drive: true

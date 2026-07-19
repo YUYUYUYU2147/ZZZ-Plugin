@@ -3,9 +3,12 @@ import path from 'path';
 import _ from 'lodash';
 import { dataPath } from '../lib/path.js';
 import { char } from '../lib/convert.js';
+import { baseValueData } from '../lib/score.js';
+import { idToName } from '../lib/convert/property.js';
 import { ZZZPlugin } from '../lib/plugin.js';
 import settings from '../lib/settings.js';
 import { isRankPermissionAllowed } from '../lib/rank.js';
+import { ZZZAvatarInfo } from '../model/avatar.js';
 
 const PREFIX = '^(#|%|/)?(?:zzz|ZZZ|绝区零)?\\s*';
 const ZZZ_ALIAS_PREFIX = /^(?:zzz|ZZZ|绝区零)+\s*/;
@@ -119,6 +122,52 @@ function clonePanelData(data) {
   return JSON.parse(JSON.stringify(data));
 }
 
+function superProp(propID, count) {
+  const base = Number(baseValueData[propID] || 0);
+  const name = idToName(propID) || '属性';
+  const isPct = /百分比|暴击|冲击力|异常掌控/.test(name);
+  const value = +(base * count).toFixed(1);
+  return {
+    property_name: name.replace('百分比', ''),
+    property_id: Number(propID),
+    base: `${value}${isPct ? '%' : ''}`,
+    level: count,
+    valid: true,
+    system_id: Math.trunc(Number(propID) / 100),
+    add: Math.max(0, count - 1),
+  };
+}
+
+function applyMaxDriveScore(data) {
+  if (!Array.isArray(data.equip)) return data;
+  let weight = {};
+  try {
+    // 用 ZZZ-Plugin 原生 Avatar/Score 规则决定每个角色该堆哪些词条，避免手写假评分。
+    weight = new ZZZAvatarInfo(data).scoreWeight || {};
+  } catch (err) {
+    logger.warn?.('[ZZZ-Plugin]理论极限面板获取评分权重失败，跳过满词条覆盖', err);
+    return data;
+  }
+  data.equip = data.equip.map(equip => {
+    const mainID = Number(equip.main_properties?.[0]?.property_id || 0);
+    const candidates = Object.keys(baseValueData)
+      .map(Number)
+      .filter(id => id !== mainID && Number(weight[id] || 0) > 0)
+      .sort((a, b) => Number(weight[b] || 0) - Number(weight[a] || 0) || a - b)
+      .slice(0, 4);
+    if (!candidates.length) return equip;
+    return {
+      ...equip,
+      level: 15,
+      rarity: 'S',
+      properties: candidates.map((id, idx) => superProp(id, idx === 0 ? 6 : 1)),
+      invalid_property_cnt: 0,
+      all_hit: true,
+    };
+  });
+  return data;
+}
+
 function applySuperOverrides(data, cfg = {}) {
   const ret = clonePanelData(data);
   const rank = Number(cfg.rank ?? 6);
@@ -140,6 +189,7 @@ function applySuperOverrides(data, cfg = {}) {
   }
   const weaponStar = Number(cfg.weapon_star || 0);
   if (ret.weapon && weaponStar) ret.weapon = { ...ret.weapon, star: weaponStar };
+  if (cfg.max_drive) applyMaxDriveScore(ret);
   return ret;
 }
 
