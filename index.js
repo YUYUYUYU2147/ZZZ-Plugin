@@ -55,10 +55,8 @@ if (apps.panelRank) {
         event: 'message',
         priority: -20000,
         rule: [
-          { reg: '^.*?(#|%|/)?(?:zzz|ZZZ|绝区零|绝区|％)+\\s*.+极限面板$', fnc: 'limitPanel' },
-          { reg: '^(#|%|/)?(?:zzz|ZZZ|绝区零|绝区|％)?\\s*.+极限面板$', fnc: 'limitPanel' },
-          { reg: '^.*?(#|%|/)?(?:zzz|ZZZ|绝区零|绝区|％)+\\s*.+(面板)?排名$', fnc: 'panelRank' },
-          { reg: '^(#|%|/)?(?:zzz|ZZZ|绝区零|绝区|％)?\\s*.+(面板)?排名$', fnc: 'panelRank' }
+          { reg: '^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\\s*.+极限面板$', fnc: 'limitPanel' },
+          { reg: '^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\\s*.+(面板)?排名$', fnc: 'panelRank' }
         ]
       })
     }
