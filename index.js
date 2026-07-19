@@ -60,6 +60,21 @@ apps.panelRankBridge = class PanelRankBridge extends plugin {
     })
   }
 
+  isPanelRankMsg(msg = '') {
+    return /^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\s*.+(?:极限面板|(面板)?排名)\s*$/.test(String(msg || ''))
+  }
+
+  async accept(e) {
+    if (!this.isPanelRankMsg(e?.msg)) return false
+    this.e = e
+    if (/极限面板\s*$/.test(String(e.msg || ''))) {
+      await this.limitPanel(e)
+    } else {
+      await this.panelRank(e)
+    }
+    return 'return'
+  }
+
   async getPanelRankApp() {
     const { PanelRank } = await import(`./dist/apps/panelRank.js?bridge=${Date.now()}`)
     const app = new PanelRank()
