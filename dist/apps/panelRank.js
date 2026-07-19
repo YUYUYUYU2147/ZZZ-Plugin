@@ -138,6 +138,20 @@ function superProp(propID, count) {
   };
 }
 
+function superCounts(candidates, weight) {
+  const counts = candidates.map(() => 1);
+  const maxWeight = Math.max(...candidates.map(id => Number(weight[id] || 0)));
+  const topIdx = candidates
+    .map((id, idx) => ({ id, idx }))
+    .filter(v => Number(weight[v.id] || 0) === maxWeight)
+    .map(v => v.idx);
+  // ZZZ-Plugin 原生 Score 的理论上限是 4 个初始词条 + 5 次强化。
+  // 如果暴击率/暴击伤害等权重并列，就把 5 次强化在并列最高词条里轮流分配，
+  // 评分仍是满分，但不会出现“全中暴击率、没有爆伤/攻击”的奇怪面板。
+  for (let i = 0; i < 5; i++) counts[topIdx[i % topIdx.length]] += 1;
+  return counts;
+}
+
 function applyMaxDriveScore(data) {
   if (!Array.isArray(data.equip)) return data;
   let weight = {};
@@ -156,11 +170,12 @@ function applyMaxDriveScore(data) {
       .sort((a, b) => Number(weight[b] || 0) - Number(weight[a] || 0) || a - b)
       .slice(0, 4);
     if (!candidates.length) return equip;
+    const counts = superCounts(candidates, weight);
     return {
       ...equip,
       level: 15,
       rarity: 'S',
-      properties: candidates.map((id, idx) => superProp(id, idx === 0 ? 6 : 1)),
+      properties: candidates.map((id, idx) => superProp(id, counts[idx])),
       invalid_property_cnt: 0,
       all_hit: true,
     };
