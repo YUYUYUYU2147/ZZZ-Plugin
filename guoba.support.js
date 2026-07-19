@@ -203,6 +203,48 @@ export function supportGuoba() {
         },
         {
           component: 'SOFT_GROUP_BEGIN',
+          label: '排名权限设置',
+        },
+        {
+          field: 'rank.master_only',
+          label: '排名仅主人/白名单',
+          bottomHelpMessage: '开启后，战绩排名、角色面板排名、极限面板仅主人、用户白名单或群白名单可用',
+          component: 'Switch',
+        },
+        {
+          field: 'rank.permission_white_list',
+          label: '排名用户白名单',
+          bottomHelpMessage: '允许使用排名系统的QQ号，开启“排名仅主人/白名单”后生效',
+          component: 'Select',
+          componentProps: {
+            mode: 'tags',
+            options: [],
+          },
+        },
+        {
+          field: 'rank.permission_group_white_list',
+          label: '排名群白名单',
+          bottomHelpMessage: '允许使用排名系统的群号，开启“排名仅主人/白名单”后生效',
+          component: 'Select',
+          componentProps: {
+            mode: 'multiple',
+            options: allGroup,
+          },
+        },
+        {
+          field: 'rank.max_display',
+          label: '排名显示数量',
+          bottomHelpMessage: '设置排名最多显示多少条',
+          component: 'InputNumber',
+          required: true,
+          componentProps: {
+            min: 1,
+            max: 20,
+            placeholder: '请输入数字',
+          },
+        },
+        {
+          component: 'SOFT_GROUP_BEGIN',
           label: '提醒功能设置',
         },
         {

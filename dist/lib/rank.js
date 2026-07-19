@@ -24,6 +24,21 @@ export function isGroupRankAllowed() {
         return Boolean(allowGroup);
     }
 }
+export function isRankPermissionAllowed(e) {
+    const rankConfig = settings.getConfig('rank') || {};
+    if (!rankConfig.master_only) {
+        return true;
+    }
+    const userId = String(e?.user_id || '');
+    const groupId = String(e?.group_id || '');
+    const masters = (Bot?.config?.masterQQ || []).map(v => String(v));
+    if (e?.isMaster || masters.includes(userId)) {
+        return true;
+    }
+    const userWhiteList = (rankConfig.permission_white_list || []).map(v => String(v));
+    const groupWhiteList = (rankConfig.permission_group_white_list || []).map(v => String(v));
+    return userWhiteList.includes(userId) || (!!groupId && groupWhiteList.includes(groupId));
+}
 export async function setUserRankAllowed(rank_type, uid, group_id, allowed) {
     await redis.set(`ZZZ:RANK:${rank_type}:${group_id}:${uid}`, Number(allowed));
 }

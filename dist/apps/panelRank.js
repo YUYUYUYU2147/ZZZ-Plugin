@@ -5,6 +5,7 @@ import { dataPath } from '../lib/path.js';
 import { char } from '../lib/convert.js';
 import { ZZZPlugin } from '../lib/plugin.js';
 import settings from '../lib/settings.js';
+import { isRankPermissionAllowed } from '../lib/rank.js';
 
 const PREFIX = '^(#|%|/)?(?:zzz|ZZZ|绝区零)?\\s*';
 const BATTLE_RANK_WORDS = /^(式舆防卫战|式舆|深渊|防卫战|防卫|危局强袭战|危局|强袭|强袭战|临界推演|临界|推演|爬塔|鏖战|爬塔S\\d|爬塔s\\d)/;
@@ -189,6 +190,7 @@ export class PanelRank extends ZZZPlugin {
   }
 
   async panelRank() {
+    if (!isRankPermissionAllowed(this.e)) return this.reply('当前排名系统仅主人或白名单可用。');
     const name = queryName(this.e.msg, '排名');
     const { resolved, list } = this.getRoleRecords(name);
     if (!resolved) return false;
@@ -210,6 +212,7 @@ export class PanelRank extends ZZZPlugin {
   }
 
   async limitPanel() {
+    if (!isRankPermissionAllowed(this.e)) return this.reply('当前排名系统仅主人或白名单可用。');
     const name = queryName(this.e.msg, '极限面板');
     const { resolved, list } = this.getRoleRecords(name);
     if (!resolved) return false;

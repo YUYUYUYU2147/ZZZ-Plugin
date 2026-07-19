@@ -1,4 +1,4 @@
-import { isUserRankAllowed, isGroupRankAllowed, getUsersInGroupRank, setUserRankAllowed, getUid2QQsMapping, removeUidAllRecord, } from '../lib/rank.js';
+import { isUserRankAllowed, isGroupRankAllowed, getUsersInGroupRank, setUserRankAllowed, getUid2QQsMapping, removeUidAllRecord, isRankPermissionAllowed, } from '../lib/rank.js';
 import { getAbyssDataInGroupRank, getDeadlyDataInGroupRank, getVoidFrontBattleDataInGroupRank, getClimbingTowerDataInGroupRank } from '../lib/db.js';
 import { rulePrefix } from '../lib/common.js';
 import { ZZZPlugin } from '../lib/plugin.js';
@@ -58,8 +58,16 @@ export class Rank extends ZZZPlugin {
         this.quality = 60;
         this.scale = 0.5;
     }
+
+    checkRankPermission() {
+        if (isRankPermissionAllowed(this.e))
+            return true;
+        this.reply('当前排名系统仅主人或白名单可用。');
+        return false;
+    }
     async abyssRank() {
         const rank_type = 'ABYSS';
+        if (!this.checkRankPermission()) return false;
         if (!(this.e?.group_id)) {
             return this.reply('请在群聊中使用该命令！');
         }
@@ -139,6 +147,7 @@ export class Rank extends ZZZPlugin {
     }
     async deadlyRank() {
         const rank_type = 'DEADLY';
+        if (!this.checkRankPermission()) return false;
         if (!(this.e?.group_id)) {
             return this.reply('请在群聊中使用该命令！');
         }
@@ -229,6 +238,7 @@ export class Rank extends ZZZPlugin {
     }
     async voidFrontBattleRank() {
         const rank_type = 'VOID_FRONT_BATTLE';
+        if (!this.checkRankPermission()) return false;
         if (!(this.e?.group_id)) {
             return this.reply('请在群聊中使用该命令！');
         }
@@ -302,6 +312,7 @@ export class Rank extends ZZZPlugin {
         await this.render('rank/voidFrontBattle/index.html', finalData, this);
     }
     async climbingTowerHelp() {
+        if (!this.checkRankPermission()) return false;
         let help_msg = [
             '当前可供查询的爬塔排名有：',
             '- %爬塔S1排名（%拟真鏖战试炼排名）',
@@ -316,6 +327,7 @@ export class Rank extends ZZZPlugin {
     }
     async climbingTowerS1() {
         const rank_type = 'CLIMBING_TOWER_S1';
+        if (!this.checkRankPermission()) return false;
         if (!(this.e?.group_id)) {
             return this.reply('请在群聊中使用该命令！');
         }
@@ -370,6 +382,7 @@ export class Rank extends ZZZPlugin {
     }
     async climbingTowerS2() {
         const rank_type = 'CLIMBING_TOWER_S2';
+        if (!this.checkRankPermission()) return false;
         if (!(this.e?.group_id)) {
             return this.reply('请在群聊中使用该命令！');
         }
@@ -429,6 +442,7 @@ export class Rank extends ZZZPlugin {
     }
     async climbingTowerS3() {
         const rank_type = 'CLIMBING_TOWER_S3';
+        if (!this.checkRankPermission()) return false;
         if (!(this.e?.group_id)) {
             return this.reply('请在群聊中使用该命令！');
         }
@@ -493,6 +507,7 @@ export class Rank extends ZZZPlugin {
     }
     async climbingTowerS4() {
         const rank_type = 'CLIMBING_TOWER_S4';
+        if (!this.checkRankPermission()) return false;
         if (!(this.e?.group_id)) {
             return this.reply('请在群聊中使用该命令！');
         }
@@ -556,6 +571,7 @@ export class Rank extends ZZZPlugin {
         await this.render('rank/climbingTower/s4/index.html', finalData, this);
     }
     async switchRank() {
+        if (!this.checkRankPermission()) return false;
         if (!(this.e?.group_id)) {
             return this.reply('请在群聊中使用该命令！');
         }

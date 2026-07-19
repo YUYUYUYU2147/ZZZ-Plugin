@@ -1,5 +1,8 @@
 allow_group: true # 是否允许群组使用群内排名功能
 max_display: 15 # 排名显示最大数量
+master_only: false # 排名系统是否仅主人/白名单可用
+permission_white_list: [] # 排名系统用户白名单QQ
+permission_group_white_list: [] # 排名系统群白名单
 white_list: # 白名单群组
   - 123456789
 black_list: # 黑名单群组
