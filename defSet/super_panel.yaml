@@ -1,7 +1,15 @@
 # ZZZ 理论极限面板预设入口
-# 说明：source_uid 指向一份完整的 ZZZ-Plugin 面板 JSON，用 ZZZ-Plugin 原生评分/渲染规则输出。
-# 真正理论极限需要维护一份完整面板数据；不要在这里手填 66 分/MAX 之类绕过评分规则。
+# source_uid 指向一份完整面板 JSON，渲染/驱动盘评分/伤害计算全部走 ZZZ-Plugin 原生规则。
+# rank/skill_level/weapon_star 会在渲染前覆盖，用于模拟 UID 100000000 的理论满配状态。
 艾莲:
-  source_uid: '25622579'
+  source_uid: '12915316'
+  rank: 6
+  skill_level: 16
+  core_level: 7
+  weapon_star: 5
 雨果:
   source_uid: '10749301'
+  rank: 6
+  skill_level: 16
+  core_level: 7
+  weapon_star: 5

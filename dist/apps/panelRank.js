@@ -114,6 +114,35 @@ function viewRecord(v, rank, selfUid = '') {
   };
 }
 
+function clonePanelData(data) {
+  if (typeof structuredClone === 'function') return structuredClone(data);
+  return JSON.parse(JSON.stringify(data));
+}
+
+function applySuperOverrides(data, cfg = {}) {
+  const ret = clonePanelData(data);
+  const rank = Number(cfg.rank ?? 6);
+  if (Number.isFinite(rank)) {
+    ret.rank = rank;
+    if (Array.isArray(ret.ranks)) {
+      ret.ranks = ret.ranks.map(v => ({ ...v, is_unlocked: Number(v.pos ?? v.id ?? 0) <= rank }));
+    }
+  }
+  const skillLevel = Number(cfg.skill_level || 0);
+  const coreLevel = Number(cfg.core_level || 0);
+  if (Array.isArray(ret.skills)) {
+    ret.skills = ret.skills.map(v => {
+      const isCore = Number(v.skill_type) === 5 || /核心/.test(String(v.name || v.skill_type_name || ''));
+      if (isCore && coreLevel) return { ...v, level: coreLevel };
+      if (!isCore && skillLevel) return { ...v, level: skillLevel };
+      return v;
+    });
+  }
+  const weaponStar = Number(cfg.weapon_star || 0);
+  if (ret.weapon && weaponStar) ret.weapon = { ...ret.weapon, star: weaponStar };
+  return ret;
+}
+
 function loadAllPanelRecords() {
   const dir = path.join(dataPath, 'panel');
   if (!fs.existsSync(dir)) return [];
@@ -239,7 +268,7 @@ export class PanelRank extends ZZZPlugin {
       app.e = this.e;
       return app.getCharPanelTool(this.e, {
         uid: '100000000',
-        data: preset.data,
+        data: applySuperOverrides(preset.data, superData),
         needSave: false,
         reply: true,
         needImg: true
