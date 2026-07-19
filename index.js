@@ -54,8 +54,8 @@ apps.panelRankBridge = class PanelRankBridge extends plugin {
       event: 'message',
       priority: -30000,
       rule: [
-        { reg: '^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\\s*.+极限面板$', fnc: 'limitPanel' },
-        { reg: '^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\\s*.+(面板)?排名$', fnc: 'panelRank' }
+        { reg: '^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\\s*.+极限面板\\s*$', fnc: 'limitPanel' },
+        { reg: '^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\\s*.+(面板)?排名\\s*$', fnc: 'panelRank' }
       ]
     })
   }
@@ -77,5 +77,7 @@ apps.panelRankBridge = class PanelRankBridge extends plugin {
     return ret === false ? this.reply('未识别到绝区零角色，请确认角色名或别名。') : ret
   }
 }
+
+logger.mark?.('[ZZZ-Plugin]极限面板入口已注册 priority=-30000')
 
 export { apps }

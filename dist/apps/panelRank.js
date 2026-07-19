@@ -160,11 +160,11 @@ export class PanelRank extends ZZZPlugin {
       rule: [
         // 明确的 zzz/绝区零前缀规则放最前面，并用极高优先级抢在喵喵/xhh 的通用“极限面板”前处理。
         {
-          reg: '^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\\s*.+极限面板$',
+          reg: '^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\\s*.+极限面板\\s*$',
           fnc: 'limitPanel'
         },
         {
-          reg: '^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\\s*.+(面板)?排名$',
+          reg: '^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\\s*.+(面板)?排名\\s*$',
           fnc: 'panelRank'
         }
       ]
