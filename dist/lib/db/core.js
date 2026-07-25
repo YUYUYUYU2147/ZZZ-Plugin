@@ -5,6 +5,7 @@ import fs from 'fs';
 export const dbPath = {
     gacha: 'gacha',
     panel: 'panel',
+    player: 'player',
     monthly: 'monthly',
     abyss: 'abyss',
     deadly: 'deadly',

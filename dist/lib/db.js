@@ -11,6 +11,12 @@ export function getPanelData(uid) {
 export function savePanelData(uid, data) {
     setDB('panel', uid, data);
 }
+export function savePlayerInfo(uid, info) {
+    setDB('player', uid, info);
+}
+export function getPlayerInfo(uid) {
+    return getDB('player', uid) || null;
+}
 export function saveAbyssData(uid, data) {
     setDB('abyss', uid, data);
 }

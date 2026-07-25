@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <link rel="shortcut icon" href="#" />
+  <link rel="stylesheet" type="text/css" href="{{pluResPath}}ZZZero/html/challenge/challenge.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">式舆防卫战</div>
+      <div class="period">统计周期 {{period}}</div>
+    </div>
+
+    {{if avatar_icon || nickname}}
+    <div class="user-info">
+      {{if avatar_icon}}<img class="user-avatar" src="{{avatar_icon}}" />{{/if}}
+      <div class="user-detail">
+        {{if nickname}}<div class="user-name">{{nickname}}</div>{{/if}}
+        {{if uid}}<div class="user-uid">UID：{{uid}}</div>{{/if}}
+        {{if level}}<div class="user-level">绳匠等级 {{level}}</div>{{/if}}
+      </div>
+    </div>
+    {{/if}}
+
+    <div class="summary">
+      <div class="rate-row">
+        <div class="rate-item">
+          <img src="{{pluResPath}}ZZZero/img/challenge/s.png" /> x{{grade.S}}
+        </div>
+        <div class="rate-item">
+          <img src="{{pluResPath}}ZZZero/img/challenge/a.png" /> x{{grade.A}}
+        </div>
+        <div class="rate-item">
+          <img src="{{pluResPath}}ZZZero/img/challenge/b.png" /> x{{grade.B}}
+        </div>
+      </div>
+      {{if brief.score}}
+       <div class="score-row">
+        <div class="total-label">总分</div>
+        <div class="total-score">{{brief.score}}</div>
+        {{if brief_rating}}<img class="total-grade" src="{{pluResPath}}ZZZero/img/challenge/{{brief_rating}}.png" />{{/if}}
+        <div class="rank-pct">{{rank_percent}}%</div>
+      </div>
+      {{/if}}
+    </div>
+
+    {{each layers layer}}
+    <div class="layer-card">
+      <div class="layer-head">
+        <span class="layer-title">剧变节点第{{layer.zh}}防线</span>
+        <div class="grade-badge grade-{{layer.data.rating}}">{{layer.data.rating}}</div>
+        {{if layer.data.challenge_time}}
+        <span class="layer-time">
+          {{layer.data.challenge_time.year}}.{{layer.data.challenge_time.month}}.{{layer.data.challenge_time.day}}
+        </span>
+        {{/if}}
+      </div>
+
+      {{each layer.data.layer_challenge_info_list item idx}}
+      <div class="challenge-card">
+        {{if layer.name === 'fitfh' && item.monster_pic}}
+        <div class="boss-panel">
+          <div class="challenge-cover">
+            <img src="{{item.monster_pic}}" />
+          </div>
+          <div class="boss-info">
+            <div class="boss-name">{{item.monster_name || 'BOSS'}}</div>
+            <div class="boss-attrs">
+              <span class="attr-label">弱点</span>
+              {{if item.monster_weakness_tags && item.monster_weakness_tags.length}}
+                {{each item.monster_weakness_tags tag}}
+                <span class="element-tag">
+                  {{if tag.icon}}<img src="{{pluResPath}}{{tag.icon}}" />{{/if}}
+                  <span>{{tag.name}}</span>
+                </span>
+                {{/each}}
+              {{else}}
+                <span class="attr-empty">暂未标注</span>
+              {{/if}}
+            </div>
+            <div class="boss-attrs boss-resist">
+              <span class="attr-label">抗性</span>
+              {{if item.monster_resistance_tags && item.monster_resistance_tags.length}}
+                {{each item.monster_resistance_tags tag}}
+                <span class="element-tag resist-tag">
+                  {{if tag.icon}}<img src="{{pluResPath}}{{tag.icon}}" />{{/if}}
+                  <span>{{tag.name}}</span>
+                </span>
+                {{/each}}
+              {{else}}
+                <span class="attr-empty">暂未标注</span>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+        {{/if}}
+        <div class="challenge-body">
+          <div class="card-head-row">
+            <div class="team-icon team-{{idx + 1}}">
+              <span class="team-label">TEAM {{idx + 1}}</span>
+            </div>
+            {{if item.rating}}<img class="item-grade" src="{{pluResPath}}ZZZero/img/challenge/{{item.rating}}.png" />{{/if}}
+          </div>
+          {{if layer.name === 'fitfh' && item.score}}
+          <div class="challenge-score">
+            <span class="score-val">{{item.score}}</span>
+          </div>
+          {{/if}}
+          {{if item.challenge_time_fmt}}
+          <div class="challenge-time">通关时间：{{item.challenge_time_fmt}}</div>
+          {{/if}}
+          {{if item.buffer}}
+          <div class="challenge-buff">
+            <div class="buff-title">
+              <span class="buff-label">防线效果</span>
+              <span class="buff-name">{{item.buffer.title}}</span>
+            </div>
+            {{if item.buffer.text}}<div class="buff-desc">{{@ item.buffer.text}}</div>{{/if}}
+          </div>
+          {{/if}}
+          <div class="challenge-team">
+            {{each item.avatar_list av j}}
+            <div class="av-box">
+              {{if av.rank > 0}}<div class="av-rank">{{av.rank}}</div>{{/if}}
+              <div class="av-rarity rarity-{{av.rarity}}"></div>
+              <img src="{{av.role_square_url}}" />
+            </div>
+            {{/each}}
+            {{if item.buddy}}
+            <div class="av-box buddy-box">
+              <div class="av-rarity rarity-{{item.buddy.rarity}}"></div>
+              <img src="{{item.buddy.bangboo_rectangle_url}}" />
+            </div>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    {{/each}}
+
+    <div class="logo">{{@sys.copyright}}</div>
+  </div>
+</body>
+</html>

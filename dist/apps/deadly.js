@@ -61,9 +61,52 @@ export class deadly extends ZZZPlugin {
         clearTimeout(timer);
         const finalData = {
             deadly,
+            ...toGenshinMemDetailData(deadly, uid, this.e?.playerCard?.player),
             userRankAllowed
         };
-        await this.render('deadly/index.html', finalData, this);
+        await this.render('ZZZero/html/memDetail/memDetail.html', finalData, this);
     }
+}
+function pad(num) {
+    return String(num || 0).padStart(2, '0');
+}
+function fmtDate(o) {
+    if (!o)
+        return '';
+    return `${o.year}.${pad(o.month)}.${pad(o.day)} ${pad(o.hour)}:${pad(o.minute)}:${pad(o.second)}`;
+}
+function getBossBgNum(boss = {}) {
+    const m = String(boss.bg_icon || '').match(/boss_bg_(\d)/);
+    return m?.[1] ? Number(m[1]) : 1;
+}
+function clearHtml(txt = '') {
+    return String(txt).replace(/<[^>]+>/g, '').replace(/\\n/g, ' ');
+}
+function toGenshinMemDetailData(deadly, uid, player = {}) {
+    const start = `${deadly.start_time.year}.${pad(deadly.start_time.month)}.${pad(deadly.start_time.day)}`;
+    const end = `${deadly.end_time.year}.${pad(deadly.end_time.month)}.${pad(deadly.end_time.day)}`;
+    return {
+        uid,
+        nickname: deadly.nick_name || player?.nickname || '',
+        avatar_icon: deadly.avatar_icon || player?.avatar || '',
+        total_score: deadly.total_score,
+        total_star: deadly.total_star,
+        rank_percent: (Number(deadly.rank_percent || 0) / 100).toFixed(2),
+        period: `${start} - ${end}`,
+        list: (deadly.list || []).map(v => {
+            const boss = v.boss?.[0] || {};
+            const buff = v.buffer?.[0] || {};
+            return {
+                score: v.score,
+                star: v.star,
+                total_star: v.total_star,
+                challenge_time: fmtDate(v.challenge_time),
+                boss: { ...boss, bg_num: getBossBgNum(boss) },
+                buffer: { ...buff, desc: clearHtml(buff.desc || '') },
+                avatars: (v.avatar_list || []).map(a => ({ ...a })),
+                buddy: v.buddy || {}
+            };
+        })
+    };
 }
 //# sourceMappingURL=deadly.js.map

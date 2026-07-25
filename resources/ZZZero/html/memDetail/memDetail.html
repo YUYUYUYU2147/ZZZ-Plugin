@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <link rel="shortcut icon" href="#" />
+  <link rel="stylesheet" type="text/css" href="{{pluResPath}}ZZZero/html/memDetail/memDetail.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">危局强袭战</div>
+      <div class="period">统计周期 {{period}}</div>
+    </div>
+    <div class="summary-new">
+      <div class="summary-user">
+        <img class="summary-avatar" src="{{avatar_icon}}" />
+        <div class="summary-text">
+          <div class="summary-nick">{{nickname}}</div>
+          <div class="summary-uid">UID: {{uid}}</div>
+          <div class="summary-score-row">
+            <div class="summary-score">{{total_score}}</div>
+            <div class="summary-percent">{{rank_percent}}%</div>
+          </div>
+        </div>
+      </div>
+      <div class="summary-coin"><img src="{{pluResPath}}ZZZero/img/memDetail/star-icon-light.png" />x{{total_star}}</div>
+    </div>
+    {{each list item}}
+    <div class="card card-bg">
+      <div class="card-body">
+        <div class="boss-left bg-boss-{{item.boss.bg_num}}">
+          <img class="boss-cover" src="{{item.boss.icon}}" />
+          {{if item.boss.race_icon}}<img class="race-mark" src="{{item.boss.race_icon}}" />{{/if}}
+        </div>
+        <div class="info">
+          <div class="title">{{item.boss.name}}</div>
+          <div class="score-line">
+            <div class="score">{{item.score}}</div>
+            <div class="star-icons">
+              {{if item.star>=1}}
+              <img class="star-icon" src="{{pluResPath}}ZZZero/img/memDetail/star-icon-light.png" />
+              {{else}}
+              <img class="star-icon" src="{{pluResPath}}ZZZero/img/memDetail/star-icon-dark.png" />
+              {{/if}}
+              {{if item.star>=2}}
+              <img class="star-icon" src="{{pluResPath}}ZZZero/img/memDetail/star-icon-light.png" />
+              {{else}}
+              <img class="star-icon" src="{{pluResPath}}ZZZero/img/memDetail/star-icon-dark.png" />
+              {{/if}}
+              {{if item.star>=3}}
+              <img class="star-icon" src="{{pluResPath}}ZZZero/img/memDetail/star-icon-light.png" />
+              {{else}}
+              <img class="star-icon" src="{{pluResPath}}ZZZero/img/memDetail/star-icon-dark.png" />
+              {{/if}}
+            </div>
+          </div>
+          <div class="time">通关时刻：{{item.challenge_time}}</div>
+          <div class="team">
+            {{each item.avatars av}}
+            <div class="agent">
+              <img src="{{av.role_square_url}}" />
+              <div class="tag rarity-{{av.rarity}}"></div>
+              {{if av.rank>0}}<div class="rank">{{av.rank}}</div>{{/if}}
+            </div>
+            {{/each}}
+            <div class="buddy">
+              <img src="{{item.buddy.bangboo_rectangle_url}}" />
+              <div class="tag rarity-{{item.buddy.rarity}}"></div>
+            </div>
+          </div>
+          <div class="buffer">
+            <div class="buff-title">
+              <span class="buff-bg"></span>
+              <img class="buff-icon" src="{{item.buffer.icon}}" />
+              <span class="buff-name">{{item.buffer.name}}</span>
+            </div>
+            <div class="buff-desc">{{item.buffer.desc}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {{/each}}
+    <div class="tip">* 总得分与排名并非即时刷新，挑战详情存在约2小时延迟</div>
+    <div class="logo">{{@sys.copyright}}</div>
+  </div>
+</body>
+</html>

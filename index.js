@@ -60,14 +60,27 @@ apps.panelRankBridge = class PanelRankBridge extends plugin {
     })
   }
 
+  isBattleRankMsg(msg = '') {
+    const text = String(msg || '').replace(/^[%％#\/\\]?(?:zzz|ZZZ|绝区零|绝区)?\s*/, '').trim()
+    return /^(?:式舆防卫战|式舆|深渊|防卫战|防卫|危局强袭战|危局|强袭|强袭战|临界推演|临界|推演|爬塔|鏖战|爬塔S\d|爬塔s\d)(?:群内|群)?(?:排名|排行)$/.test(text)
+  }
+
   isPanelRankMsg(msg = '') {
     return /^.*?(?:%|％|#?zzz|#?ZZZ|#?绝区零|#?绝区)\s*.+(?:极限面板|(面板)?排名)\s*$/.test(String(msg || ''))
   }
 
   async accept(e) {
-    if (!this.isPanelRankMsg(e?.msg)) return false
+    let msg = String(e?.msg || '')
+    const isAtBot = e?.atBot || /\[CQ:at,qq=\d+\]/.test(msg)
+    if (isAtBot) {
+      msg = msg.replace(/\[CQ:at,qq=\d+\]/g, '').trim()
+      if (!/^[%#/\\]/.test(msg)) msg = '%' + msg
+    }
+    if (this.isBattleRankMsg(msg)) return false
+    if (!this.isPanelRankMsg(msg)) return false
     this.e = e
-    if (/极限面板\s*$/.test(String(e.msg || ''))) {
+    this.e.msg = msg
+    if (/极限面板\s*$/.test(msg)) {
       await this.limitPanel(e)
     } else {
       await this.panelRank(e)
@@ -83,16 +96,47 @@ apps.panelRankBridge = class PanelRankBridge extends plugin {
   }
 
   async panelRank(e) {
+    if (this.isBattleRankMsg(this.e?.msg || e?.msg || '')) return false
     const ret = await (await this.getPanelRankApp()).panelRank(e)
     return ret === false ? this.reply('未识别到绝区零角色，请确认角色名或别名。') : ret
   }
 
   async limitPanel(e) {
+    if (this.isBattleRankMsg(this.e?.msg || e?.msg || '')) return false
     const ret = await (await this.getPanelRankApp()).limitPanel(e)
     return ret === false ? this.reply('未识别到绝区零角色，请确认角色名或别名。') : ret
   }
 }
 
 logger.mark?.('[ZZZ-Plugin]极限面板入口已注册 priority=-30000')
+
+// ZZZ-Plugin 专用短指令桥接：避免 %临界 / %zzz临界 被 genshin/bbb-plugin 的别名链抢走。
+apps.zzzShortBridge = class ZzzShortBridge extends plugin {
+  constructor() {
+    super({
+      name: '[ZZZ-Plugin]短指令桥接',
+      dsc: 'ZZZ-Plugin专用短指令入口',
+      event: 'message',
+      priority: -30000,
+      rule: [
+        { reg: '^(?:[%％]z|#绝区零z|#绝区z).*$', fnc: 'voidFrontBattle' }
+      ]
+    })
+  }
+
+  async voidFrontBattle(e) {
+    this.e = e
+    const msg = String(e?.msg || '').trim()
+    if (!/^(?:[%％]z|#绝区零z|#绝区z)\s*(?:上期|往期)?(?:临界推演|临界|推演)$/.test(msg)) return false
+    logger.mark?.(`[ZZZ-Plugin]短指令命中：${msg}`)
+    const { VoidFrontBattle } = await import(`./dist/apps/voidFrontBattle.js?short=${Date.now()}`)
+    const app = new VoidFrontBattle()
+    app.e = e
+    await app.voidFrontBattle()
+    return 'return'
+  }
+}
+
+logger.mark?.('[ZZZ-Plugin]短指令入口已注册：%z临界')
 
 export { apps }

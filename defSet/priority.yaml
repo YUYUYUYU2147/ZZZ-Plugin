@@ -1,7 +1,7 @@
 card: 70 # 玩家信息（卡片）
 abyss: 70 # 深渊
 deadly: 70 # 危局
-voidFrontBattle: 70 # 临界推演
+voidFrontBattle: -10000 # 临界推演，避免被 genshin/bbb-plugin 抢指令
 climbingTower: 70 # 拟真鏖战试炼
 hollowZero: 70 # 零号空洞
 explorationDetail: 70 # 区域收集
@@ -12,6 +12,7 @@ manage: 70 # 管理
 note: 70 # 体力
 panel: 70 # 面板
 panelRank: -10000 # 角色面板排名/极限面板，需抢在喵喵/xhh普通面板前处理
+rank: -10000 # 群战绩排名，抢在喵喵通用排名前处理
 remind: 70 # 挑战提醒
 update: 70 # 更新
 user: 70 # 账号操作

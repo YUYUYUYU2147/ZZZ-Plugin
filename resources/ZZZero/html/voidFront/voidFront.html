@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <link rel="shortcut icon" href="#" />
+  <link rel="stylesheet" type="text/css" href="{{pluResPath}}ZZZero/html/voidFront/voidFront.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">临界推演</div>
+      {{if void_front_battle_abstract_info_brief.end_ts_over_42_days == true}}
+      <div class="period">周期剩余时间: 超过42天</div>
+      {{else}}
+      <div class="period">周期剩余时间: {{end_time}}</div>
+      {{/if}}
+    </div>
+    <div class="summary-card" style="background-image: url('{{pluResPath}}ZZZero/img/voidFront/detail.png'), url('{{ending_record_bg_pic}}');">
+      <div class="summary-top">
+        <div class="summary-score">{{total_score}}</div>
+        <div class="summary-rank">{{rank_percent}}%</div>
+      </div>
+      <div class="summary-bottom">
+        <div class="summary-left">
+          <img class="summary-avatar" src="{{role.icon}}" />
+          <div class="summary-name">{{role.nickname}} UID: {{uid}}</div>
+        </div>
+        <div class="summary-right">
+          <div class="summary-ending">{{ending_record_name}}</div>
+        </div>
+      </div>
+    </div>
+    <div class="notice-box">
+      <span class="notice-icon">⚠</span>
+      <span class="notice-text">总得分&排名和挑战详情并非同时刷新，挑战详情存在2小时左右延迟</span>
+    </div>
+    <div class="boss-card">
+      <div class="card-header">
+        <div class="card-title">{{boss_main.boss.name}}</div>
+        <div class="card-score">{{boss_main.score}}</div>
+        <div class="card-star">
+          <img src="{{pluResPath}}ZZZero/img/voidFront/star-{{boss_main.star}}.png" />
+        </div>
+      </div>
+      <div class="card-content">
+        <div class="boss-image" style="background-image: url('{{boss_main.boss.bg_icon}}');">
+          <img class="boss-cover" src="{{boss_main.boss.icon}}" />
+          {{if boss_main.boss.race_icon}}<img class="race-mark" src="{{boss_main.boss.race_icon}}" />{{/if}}
+        </div>
+        <div class="card-info">
+          <div class="score-info">
+            <div class="score-multiplier">得分倍率 ×{{boss_main.score_ratio}}</div>
+            <div class="challenge-time">通关时刻: {{boss_main.challenge_time}}</div>
+          </div>
+          <div class="team-section">
+            <div class="team-title">队伍配置</div>
+            <div class="team-grid">
+              {{each boss_main.avatars av}}
+              <div class="agent">
+                <img src="{{av.role_square_url}}" />
+                <div class="tag rarity-{{av.rarity}}"></div>
+                {{if av.rank>0}}<div class="rank">{{av.rank}}</div>{{/if}}
+              </div>
+              {{/each}}
+              <div class="buddy">
+                <img src="{{boss_main.buddy.bangboo_rectangle_url}}" />
+                <div class="tag rarity-{{boss_main.buddy.rarity}}"></div>
+              </div>
+            </div>
+          </div>
+          <div class="buffer-section">
+            <div class="buffer-info">
+              <img class="buffer-icon" src="{{boss_main.buffer.icon}}" />
+              <span class="buffer-name">{{boss_main.buffer.name}}</span>
+            </div>
+            <div class="buffer-desc">{{boss_main.buffer.desc}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="sub-challenges">
+        <div class="sub-grid">
+          {{each boss_main.sub sub}}
+          <div class="sub-item">
+            <div class="sub-header">
+              <div class="sub-name">{{sub.name}}</div>
+              <img class="sub-star" src="{{pluResPath}}ZZZero/img/voidFront/star-{{sub.star}}.png" />
+            </div>
+            <div class="sub-team">
+              {{each sub.avatars av}}
+              <div class="sub-agent">
+                <img src="{{av.role_square_url}}" />
+                <div class="sub-tag rarity-{{av.rarity}}"></div>
+                {{if av.rank>0}}<div class="sub-rank">{{av.rank}}</div>{{/if}}
+              </div>
+              {{/each}}
+              <div class="sub-buddy">
+                <img src="{{sub.buddy.bangboo_rectangle_url}}" />
+                <div class="sub-tag rarity-{{sub.buddy.rarity}}"></div>
+              </div>
+            </div>
+            <div class="sub-buffer">
+              <div class="sub-buffer-info">
+                <img class="sub-buffer-icon" src="{{sub.buffer.icon}}" />
+                <span class="sub-buffer-name">{{sub.buffer.name}}</span>
+              </div>
+              <div class="sub-buffer-desc">{{sub.buffer.desc}}</div>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+    {{each stages st}}
+    <div class="stage-card">
+      <div class="card-header">
+        <div class="card-title">{{st.name}}</div>
+        <div class="card-score">{{st.score}}</div>
+        <div class="card-star">
+          <img src="{{pluResPath}}ZZZero/img/voidFront/star-{{st.star}}.png" />
+        </div>
+      </div>
+      <div class="card-content">
+        <div class="card-info">
+          <div class="score-info">
+            <div class="score-multiplier">得分倍率 ×{{st.score_ratio}}</div>
+            <div class="challenge-time">通关时刻: {{st.challenge_time}}</div>
+          </div>
+          <div class="team-section">
+            <div class="team-title">队伍配置</div>
+            <div class="team-grid">
+              {{each st.avatars av}}
+              <div class="agent">
+                <img src="{{av.role_square_url}}" />
+                <div class="tag rarity-{{av.rarity}}"></div>
+                {{if av.rank>0}}<div class="rank">{{av.rank}}</div>{{/if}}
+              </div>
+              {{/each}}
+              <div class="buddy">
+                <img src="{{st.buddy.bangboo_rectangle_url}}" />
+                <div class="tag rarity-{{st.buddy.rarity}}"></div>
+              </div>
+            </div>
+          </div>
+          <div class="buffer-section">
+            <div class="buffer-info">
+              <img class="buffer-icon" src="{{st.buffer.icon}}" />
+              <span class="buffer-name">{{st.buffer.name}}</span>
+            </div>
+            <div class="buffer-desc">{{st.buffer.desc}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="sub-challenges">
+        <div class="sub-grid">
+          {{each st.sub sub}}
+          <div class="sub-item">
+            <div class="sub-header">
+              <div class="sub-name">{{sub.name}}</div>
+              <img class="sub-star" src="{{pluResPath}}ZZZero/img/voidFront/star-{{sub.star}}.png" />
+            </div>
+            <div class="sub-team">
+              {{each sub.avatars av}}
+              <div class="sub-agent">
+                <img src="{{av.role_square_url}}" />
+                <div class="sub-tag rarity-{{av.rarity}}"></div>
+                {{if av.rank>0}}<div class="sub-rank">{{av.rank}}</div>{{/if}}
+              </div>
+              {{/each}}
+              <div class="sub-buddy">
+                <img src="{{sub.buddy.bangboo_rectangle_url}}" />
+                <div class="sub-tag rarity-{{sub.buddy.rarity}}"></div>
+              </div>
+            </div>
+            <div class="sub-buffer">
+              <div class="sub-buffer-info">
+                <img class="sub-buffer-icon" src="{{sub.buffer.icon}}" />
+                <span class="sub-buffer-name">{{sub.buffer.name}}</span>
+              </div>
+              <div class="sub-buffer-desc">{{sub.buffer.desc}}</div>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+    {{/each}}
+    <div class="logo">{{@sys.copyright}}</div>
+  </div>
+</body>
+</html>

@@ -5,62 +5,80 @@
 {{/block}}
 
 {{block 'main'}}
-<div class="rank-card {{mode === 'limit' ? 'limit-mode' : ''}}">
-  <div class="hero">
-    <div class="hero-left">
-      <div class="eyebrow">ZZZ PANEL {{mode === 'limit' ? 'LIMIT' : 'RANK'}}</div>
-      <div class="title">{{title}}</div>
-      <div class="subtitle">{{subtitle}}</div>
-    </div>
-    <div class="hero-right">
-      <div class="count">{{count}}</div>
-      <div class="count-label">本地面板</div>
+<div class="rank-page">
+  <div class="page-title">#{{title}}</div>
+
+  <div class="desc-card">
+    <div class="desc-title">群排名说明</div>
+    <div class="desc-lines">
+      <div><span class="dot red"></span> 综合练度排名：按 ZZZ-Plugin 驱动盘评分 / 米游社评分兜底排序的群内排名</div>
+      <div><span class="dot yellow"></span> 排名范围：本群内 / 本地已保存面板 / 未更新面板不参与排名</div>
+      <div><span class="dot yellow"></span> 数据来源：发送 <b>%zzz更新面板</b> 或 <b>%zzz更新展柜面板</b> 后缓存的数据</div>
+      <div><span class="dot yellow"></span> 展示内容：游戏头像、UID、技能等级、音擎、驱动盘与评分</div>
     </div>
   </div>
 
   <div class="record-list">
     {{each records item i}}
     <div class="record rank-{{item.rank}} {{item.self ? 'self' : ''}}">
-      <div class="rank-no">{{mode === 'limit' ? item.label : item.rank}}</div>
+      <div class="rank-tag">{{item.rank === 1 ? '最强' : '#' + item.rank}}</div>
+
       <div class="avatar-wrap">
         {{if item.icon}}
         <img src="{{item.icon}}" />
         {{/if}}
       </div>
-      <div class="main-info">
-        <div class="topline">
-          <span class="uid">UID {{item.uid}}</span>
-          {{if item.self}}<span class="self-tag">自己</span>{{/if}}
-          {{if item.weapon}}<span class="weapon">{{item.weapon}}</span>{{/if}}
+
+      <div class="user-block">
+        <div class="nickname-line">
+          <span class="nickname">{{item.player?.nickname || '未缓存昵称'}}</span>
+          <span class="cons">影画{{item.cons || 0}}</span>
         </div>
-        <div class="stats">
-          {{each item.stats st}}
-          <div class="stat">
-            <span class="stat-name">{{st.name}}</span>
-            <span class="stat-value">{{st.value}}</span>
+        <div class="uid">UID {{item.uid}}</div>
+      </div>
+
+      <div class="stat-strip">
+        {{each item.stats st}}
+        <div class="stat">
+          <span class="stat-name">{{st.name}}</span>
+          <span class="stat-value">{{st.value}}</span>
+        </div>
+        {{/each}}
+      </div>
+
+      <div class="score-box">
+        <div class="score-label">综合</div>
+        <div class="score">{{item.compositeScore}}</div>
+        <div class="rating">伤 {{item.damagePercent}}%</div>
+      </div>
+
+      <div class="skill-list">
+        {{each item.skills lv si}}
+        <div class="skill">{{lv}}</div>
+        {{/each}}
+      </div>
+
+      <div class="detail-row">
+        <div class="weapon-box">
+          {{if item.weaponData?.icon}}
+          <img class="weapon-icon" src="{{item.weaponData.icon}}" />
+          {{/if}}
+          <div class="weapon-text">
+            <div class="weapon-name">{{item.weaponData?.name || '未记录音擎'}}</div>
+            <div class="weapon-sub">{{item.weaponData?.rarity || ''}} {{item.weaponData?.star ? '精' + item.weaponData.star : ''}} {{item.weaponData?.level ? 'Lv.' + item.weaponData.level : ''}} {{item.damageSkill ? '｜' + item.damageSkill : ''}}</div>
+          </div>
+        </div>
+
+        <div class="equip-list">
+          {{each item.equips eq}}
+          <div class="equip" title="{{eq.name}}">
+            {{if eq.icon}}<img src="{{eq.icon}}" />{{/if}}
+            <span>{{eq.type}}</span>
           </div>
           {{/each}}
         </div>
       </div>
-      <div class="score-box">
-        <div class="score">{{item.score}}</div>
-        <div class="rating">{{item.rating}}</div>
-      </div>
     </div>
-    {{/each}}
-  </div>
-
-  {{if mode === 'limit'}}
-  <div class="limit-box">
-    <div class="limit-title">简版极限目标</div>
-    <div class="limit-score">100<span>分 S+</span></div>
-    <div class="limit-desc">当前参考还可提升约 {{improve}} 分；按米游社养成方案评分估算，后续可继续细化角色专属权重。</div>
-  </div>
-  {{/if}}
-
-  <div class="notes">
-    {{each notes note}}
-    <div>※ {{note}}</div>
     {{/each}}
   </div>
 </div>

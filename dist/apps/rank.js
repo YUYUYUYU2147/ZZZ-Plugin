@@ -5,6 +5,23 @@ import { ZZZPlugin } from '../lib/plugin.js';
 import { Deadly } from '../model/deadly.js';
 import settings from '../lib/settings.js';
 import _ from 'lodash';
+// 排名指令兼容：%防卫战排名 / %防卫战排行 / 防卫战排名，以及原来的 %zzz防卫战排名。
+const battleRankPrefix = '^(?:%|％|#|/)?(?:zzz|ZZZ|绝区零|绝区)?';
+const rankSuffix = '(群内|群)?(?:排名|排行)$';
+function qqAvatarUrl(qq) {
+    qq = String(qq || '').trim();
+    return /^\d{5,12}$/.test(qq) ? `https://q.qlogo.cn/g?b=qq&s=100&nk=${qq}` : '';
+}
+function fillPlayerAvatars(records = [], uid2qqs = {}) {
+    for (const record of records) {
+        if (_.get(record, 'player.avatar')) continue;
+        const uid = String(_.get(record, 'player.player.game_uid') || '');
+        const qq = uid2qqs?.[uid]?.[0];
+        const avatar = qqAvatarUrl(qq);
+        if (avatar) _.set(record, 'player.avatar', avatar);
+    }
+    return records;
+}
 export class Rank extends ZZZPlugin {
     isGroupRankAllowed;
     quality;
@@ -17,35 +34,35 @@ export class Rank extends ZZZPlugin {
             priority: _.get(settings.getConfig('priority'), 'rank', 70),
             rule: [
                 {
-                    reg: `${rulePrefix}(式舆防卫战|式舆|深渊|防卫战|防卫)(群内|群)?排名$`,
+                    reg: `${battleRankPrefix}(式舆防卫战|式舆|深渊|防卫战|防卫)${rankSuffix}`,
                     fnc: 'abyssRank'
                 },
                 {
-                    reg: `${rulePrefix}(危局强袭战|危局|强袭|强袭战)(群内|群)?排名$`,
+                    reg: `${battleRankPrefix}(危局强袭战|危局|强袭|强袭战)${rankSuffix}`,
                     fnc: 'deadlyRank'
                 },
                 {
-                    reg: `${rulePrefix}(临界推演|临界|推演)(群内|群)?排名$`,
+                    reg: `${battleRankPrefix}(临界推演|临界|推演)${rankSuffix}`,
                     fnc: 'voidFrontBattleRank'
                 },
                 {
-                    reg: `${rulePrefix}(爬塔|鏖战)(群内|群)?排名$`,
+                    reg: `${battleRankPrefix}(爬塔|鏖战)${rankSuffix}`,
                     fnc: 'climbingTowerHelp'
                 },
                 {
-                    reg: `${rulePrefix}(爬塔S1|爬塔s1|拟真鏖战试炼)(群内|群)?排名$`,
+                    reg: `${battleRankPrefix}(爬塔S1|爬塔s1|拟真鏖战试炼)${rankSuffix}`,
                     fnc: 'climbingTowerS1'
                 },
                 {
-                    reg: `${rulePrefix}(爬塔S2|爬塔s2|鏖战试炼末路|鏖战试炼：末路|鏖战试炼:末路)(群内|群)?排名$`,
+                    reg: `${battleRankPrefix}(爬塔S2|爬塔s2|鏖战试炼末路|鏖战试炼：末路|鏖战试炼:末路)${rankSuffix}`,
                     fnc: 'climbingTowerS2'
                 },
                 {
-                    reg: `${rulePrefix}(爬塔S3|爬塔s3|鏖战试炼荣耀|鏖战试炼：荣耀|鏖战试炼:荣耀)(群内|群)?排名$`,
+                    reg: `${battleRankPrefix}(爬塔S3|爬塔s3|鏖战试炼荣耀|鏖战试炼：荣耀|鏖战试炼:荣耀)${rankSuffix}`,
                     fnc: 'climbingTowerS3'
                 },
                 {
-                    reg: `${rulePrefix}(爬塔S4|爬塔s4|鏖战试炼狂澜|鏖战试炼：狂澜|鏖战试炼:狂澜)(群内|群)?排名$`,
+                    reg: `${battleRankPrefix}(爬塔S4|爬塔s4|鏖战试炼狂澜|鏖战试炼：狂澜|鏖战试炼:狂澜)${rankSuffix}`,
                     fnc: 'climbingTowerS4'
                 },
                 {
@@ -142,6 +159,7 @@ export class Rank extends ZZZPlugin {
         let maxDisplay = _.get(settings.getConfig('rank'), 'max_display', 15);
         maxDisplay = Math.max(1, Math.min(maxDisplay, 15));
         scoredData = scoredData.slice(0, maxDisplay);
+        fillPlayerAvatars(scoredData, uid2qqs);
         const finalData = { scoredData };
         await this.render('rank/abyss/index.html', finalData, this);
     }
@@ -233,6 +251,7 @@ export class Rank extends ZZZPlugin {
             await item.result.get_assets();
         }));
         clearTimeout(timer);
+        fillPlayerAvatars(scoredData, uid2qqs);
         const finalData = { scoredData };
         await this.render('rank/deadly/index.html', finalData, this);
     }
@@ -270,8 +289,10 @@ export class Rank extends ZZZPlugin {
         }
         let scoredData = filteredByUser
             .filter(item => {
-            const endTS = _.get(item, 'result.void_front_battle_abstract_info_brief.end_ts');
-            return currentTimestamp <= endTS;
+            const endTS = Number(_.get(item, 'result.void_front_battle_abstract_info_brief.end_ts', 0));
+            // 米游社 period_detail 返回的临界数据有时 end_ts 为 0，但仍有有效结算记录。
+            // 这种情况下不能按过期过滤掉，否则一键更新后排行仍为空。
+            return !endTS || currentTimestamp <= endTS;
         })
             .filter(item => _.get(item, 'result.void_front_battle_abstract_info_brief.has_ending_record') === true)
             .map(item => {
@@ -297,7 +318,7 @@ export class Rank extends ZZZPlugin {
             };
         });
         if (scoredData.length === 0) {
-            return this.reply('没有危局强袭战排名，请先 %显示危局排名，并且用 %危局 查询战绩');
+            return this.reply('没有临界推演排名，请先 %显示临界排名，并使用 %更新群友挑战记录 刷新缓存；单人查询可用 %zzz临界，避免被 genshin 的 %临界 抢走。');
         }
         scoredData.sort((a, b) => {
             if (a.score.totalScore !== b.score.totalScore) {
@@ -308,6 +329,7 @@ export class Rank extends ZZZPlugin {
         let maxDisplay = _.get(settings.getConfig('rank'), 'max_display', 15);
         maxDisplay = Math.max(1, Math.min(maxDisplay, 15));
         scoredData = scoredData.slice(0, maxDisplay);
+        fillPlayerAvatars(scoredData, uid2qqs);
         const finalData = { scoredData };
         await this.render('rank/voidFrontBattle/index.html', finalData, this);
     }
@@ -377,6 +399,7 @@ export class Rank extends ZZZPlugin {
         let maxDisplay = _.get(settings.getConfig('rank'), 'max_display', 15);
         maxDisplay = Math.max(1, Math.min(maxDisplay, 15));
         scoredData = scoredData.slice(0, maxDisplay);
+        fillPlayerAvatars(scoredData, uid2qqs);
         const finalData = { scoredData };
         await this.render('rank/climbingTower/s1/index.html', finalData, this);
     }
@@ -437,6 +460,7 @@ export class Rank extends ZZZPlugin {
         let maxDisplay = _.get(settings.getConfig('rank'), 'max_display', 15);
         maxDisplay = Math.max(1, Math.min(maxDisplay, 15));
         scoredData = scoredData.slice(0, maxDisplay);
+        fillPlayerAvatars(scoredData, uid2qqs);
         const finalData = { scoredData };
         await this.render('rank/climbingTower/s2/index.html', finalData, this);
     }
@@ -502,6 +526,7 @@ export class Rank extends ZZZPlugin {
         let maxDisplay = _.get(settings.getConfig('rank'), 'max_display', 15);
         maxDisplay = Math.max(1, Math.min(maxDisplay, 15));
         scoredData = scoredData.slice(0, maxDisplay);
+        fillPlayerAvatars(scoredData, uid2qqs);
         const finalData = { scoredData };
         await this.render('rank/climbingTower/s3/index.html', finalData, this);
     }
@@ -567,6 +592,7 @@ export class Rank extends ZZZPlugin {
         let maxDisplay = _.get(settings.getConfig('rank'), 'max_display', 15);
         maxDisplay = Math.max(1, Math.min(maxDisplay, 15));
         scoredData = scoredData.slice(0, maxDisplay);
+        fillPlayerAvatars(scoredData, uid2qqs);
         const finalData = { scoredData };
         await this.render('rank/climbingTower/s4/index.html', finalData, this);
     }

@@ -93,8 +93,8 @@
       </div>
       <% for(let i=0 ; i < 3 ; i++) { %>
       {{set stage = record.result.main_challenge_record_list[i]}}
+      {{if stage}}
       <div class="item-card">
-        {{if stage}}
         <div class="pop"><img src="{{stage.buffer.icon}}" alt=""></div>
         <div class="content">
           <div class="header">
@@ -148,14 +148,14 @@
             </div>
           </div>
         </div>
-        {{/if}}
       </div>
+      {{/if}}
       <% } %>
     </div>
     {{/each}}
     <div class="notes-container">
       <ul class="notes">
-        <li>请在群内查询<span class="command">%临界推演</span>，以参与对应群的临界推演排名</li>
+        <li>请在群内查询<span class="command">%z临界推演</span>，以参与对应群的临界推演排名</li>
         <li>对于分数持平的情况，会根据分数的更新时间进行排序，更新时间越早的排名越靠前</li>
       </ul>
     </div>

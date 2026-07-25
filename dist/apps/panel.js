@@ -1,10 +1,49 @@
 import { mergePanel, getPanelList, refreshPanel as refreshPanelFunction, getPanelOrigin, updatePanelData, formatPanelData, getPanelListOrigin, } from '../lib/avatar.js';
 import { parsePlayerInfo, refreshPanelFromEnka } from '../model/Enka/enkaApi.js';
+import { savePlayerInfo } from '../lib/db.js?t=1';
 import { rulePrefix } from '../lib/common.js';
 import { ZZZPlugin } from '../lib/plugin.js';
+import { dataPath } from '../lib/path.js';
 import settings from '../lib/settings.js';
 import { getCk } from '../lib/common.js';
+import fs from 'fs';
+import path from 'path';
 import _ from 'lodash';
+
+function pickGameAvatar(data, depth = 0) {
+    if (!data || depth > 4)
+        return '';
+    if (typeof data === 'string') {
+        if (/^https?:\/\//.test(data) && /(avatar|head|icon|role|profile|face)/i.test(data))
+            return data;
+        return '';
+    }
+    if (Array.isArray(data)) {
+        for (const item of data) {
+            const ret = pickGameAvatar(item, depth + 1);
+            if (ret)
+                return ret;
+        }
+        return '';
+    }
+    if (typeof data === 'object') {
+        const preferred = ['avatar_url', 'avatarUrl', 'avatar_icon', 'avatarIcon', 'head_icon', 'headIcon', 'icon_url', 'iconUrl', 'profile_icon', 'profileIcon'];
+        for (const key of preferred) {
+            const ret = pickGameAvatar(data[key], depth + 1);
+            if (ret)
+                return ret;
+        }
+        for (const key in data) {
+            if (!/(avatar|head|icon|profile|face)/i.test(key))
+                continue;
+            const ret = pickGameAvatar(data[key], depth + 1);
+            if (ret)
+                return ret;
+        }
+    }
+    return '';
+}
+
 export class Panel extends ZZZPlugin {
     constructor() {
         super({
@@ -13,6 +52,10 @@ export class Panel extends ZZZPlugin {
             event: 'message',
             priority: _.get(settings.getConfig('priority'), 'panel', 70),
             rule: [
+                {
+                    reg: `${rulePrefix}(?:更新|刷新)(?:全部|全局|所有|全服|本地)(?:展柜)?面板$`,
+                    fnc: 'refreshAllPanel'
+                },
                 {
                     reg: `${rulePrefix}(.*)面板(展柜)?(刷新|更新|列表)?$`,
                     fnc: 'handleRule'
@@ -31,6 +74,75 @@ export class Panel extends ZZZPlugin {
                 { key: 'zzz.tool.panelList', fn: 'getCharPanelListTool' }
             ]
         });
+    }
+    getAllPanelUids() {
+        const dirs = ['panel', 'player', 'abyss', 'deadly', 'voidFrontBattle', 'climbingTower', 'monthly'];
+        const uids = new Set();
+        for (const dir of dirs) {
+            const full = path.join(dataPath, dir);
+            if (!fs.existsSync(full))
+                continue;
+            for (const file of fs.readdirSync(full)) {
+                const m = file.match(/^(\d+)\.json$/);
+                if (m)
+                    uids.add(m[1]);
+            }
+        }
+        return [...uids].sort((a, b) => Number(a) - Number(b));
+    }
+    async refreshAllPanel() {
+        if (!this.e.isMaster) {
+            return this.reply('仅限主人批量更新绝区零面板', false, { at: true, recallMsg: 100 });
+        }
+        const uids = this.getAllPanelUids();
+        if (!uids.length)
+            return this.reply('暂无可批量更新的本地 UID。');
+        const limit = Math.max(1, Math.min(Number(this.e.msg.match(/\d+/)?.[0] || uids.length), uids.length));
+        const list = uids.slice(0, limit);
+        await this.reply(`开始批量更新绝区零展柜面板：${list.length}/${uids.length} 个 UID。\n说明：批量更新走公开展柜/Enka，不需要群友在线；未公开展柜会失败。`);
+        let ok = 0, fail = 0, empty = 0;
+        const errors = [];
+        for (let i = 0; i < list.length; i++) {
+            const uid = list[i];
+            try {
+                const data = await refreshPanelFromEnka(uid);
+                if (typeof data === 'number') {
+                    fail++;
+                    errors.push(`${uid}: HTTP ${data}`);
+                    continue;
+                }
+                const { playerInfo, panelList } = data || {};
+                if (!Array.isArray(panelList) || !panelList.length) {
+                    empty++;
+                    errors.push(`${uid}: 展柜为空`);
+                    continue;
+                }
+                await mergePanel(uid, panelList);
+                if (playerInfo?.nickname) {
+                    savePlayerInfo(uid, {
+                        nickname: playerInfo.nickname,
+                        gameAvatar: pickGameAvatar(playerInfo),
+                    });
+                }
+                ok++;
+            }
+            catch (err) {
+                fail++;
+                errors.push(`${uid}: ${err?.message || err}`);
+            }
+            if ((i + 1) % 10 === 0 || i + 1 === list.length) {
+                await this.reply(`批量更新进度 ${i + 1}/${list.length}\n成功:${ok} 失败:${fail} 空展柜:${empty}`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 1200));
+        }
+        const msg = [
+            `绝区零全局面板批量更新完成`,
+            `成功：${ok}`,
+            `失败：${fail}`,
+            `空展柜：${empty}`,
+            errors.length ? `失败示例：\n${errors.slice(0, 12).join('\n')}` : ''
+        ].filter(Boolean).join('\n');
+        return this.reply(msg);
     }
     async handleRule() {
         if (!this.e.msg)
@@ -116,6 +228,14 @@ export class Panel extends ZZZPlugin {
         }
         if (!result)
             return false;
+        const pc = this.e?.playerCard;
+        if (pc?.player?.nickname) {
+            savePlayerInfo(uid, {
+                nickname: pc.player.nickname,
+                gameAvatar: pickGameAvatar(pc.player),
+                avatar: pc.avatar || '',
+            });
+        }
         const newChar = result.filter(item => item.isNew);
         const finalData = {
             newChar: newChar.length,
