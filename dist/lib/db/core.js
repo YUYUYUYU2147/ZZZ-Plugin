@@ -11,6 +11,7 @@ export const dbPath = {
     deadly: 'deadly',
     voidFrontBattle: 'voidFrontBattle',
     climbingTower: 'climbingTower',
+    holoBoss: 'holoBoss',
 };
 export function getDB(dbName, dbFile) {
     const db = dbPath[dbName];

@@ -177,6 +177,20 @@ const helpData = [
                 commands: ['上期式舆防卫战', '上期危局', '上期强袭', '上期强袭战'],
             },
             {
+                title: '查看拟境湮灭战',
+                desc: '查看拟境湮灭战信息',
+                needCK: true,
+                needSK: false,
+                commands: ['拟境湮灭战', '拟境', '湮灭', '湮灭战'],
+            },
+            {
+                title: '查看上期拟境湮灭战',
+                desc: '查看上期拟境湮灭战信息',
+                needCK: true,
+                needSK: false,
+                commands: ['上期拟境湮灭战', '上期拟境', '上期湮灭', '上期湮灭战'],
+            },
+            {
                 title: '查看临界推演数据',
                 desc: '查看临界推演战斗数据',
                 needCK: true,
@@ -230,6 +244,13 @@ const helpData = [
                 needCK: false,
                 needSK: false,
                 commands: ['危局强袭战群内排名', '危局群内排名', '强袭战群内排名'],
+            },
+            {
+                title: '查看拟境湮灭战排名',
+                desc: '查看拟境湮灭战群排名',
+                needCK: false,
+                needSK: false,
+                commands: ['拟境湮灭战排名', '拟境排名', '湮灭战排名'],
             },
             {
                 title: '查看临界推演排名',
