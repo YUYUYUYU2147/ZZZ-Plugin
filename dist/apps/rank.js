@@ -812,6 +812,10 @@ export class Rank extends ZZZPlugin {
             rank_types = ['ABYSS'];
             rank_type_str = '式舆防卫战';
         }
+        else if (/绝境/.test(this.e.msg)) {
+            rank_types = ['DEADLY'];
+            rank_type_str = '危局强袭战绝境';
+        }
         else if (/危局强袭战|危局|强袭|强袭战/.test(this.e.msg)) {
             rank_types = ['DEADLY'];
             rank_type_str = '危局强袭战';

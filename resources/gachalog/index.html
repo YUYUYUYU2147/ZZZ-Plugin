@@ -46,7 +46,7 @@
   {{/if}}
   <div class="list">
     {{each item.list inv j}}
-    <div class="item rankS {{inv.isUp && 'up'}}">
+    <div class="item rankS {{inv.isUp === true ? 'up' : ''}}">
       <div class="rank rank-icon s"></div>
       <div class="image">
         <img src="{{inv.square_icon}}" alt="">
