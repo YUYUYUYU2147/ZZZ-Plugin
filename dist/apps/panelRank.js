@@ -18,7 +18,7 @@ const require = createRequire(import.meta.url);
 
 const PREFIX = '^(#|%|/)?(?:zzz|ZZZ|绝区零)?\\s*';
 const ZZZ_ALIAS_PREFIX = /^(?:zzz|ZZZ|绝区零)+\s*/;
-const BATTLE_RANK_WORDS = /^(式舆防卫战|式舆|深渊|防卫战|防卫|危局强袭战|危局|强袭|强袭战|临界推演|临界|推演|爬塔|鏖战|爬塔S\\d|爬塔s\\d)/;
+const BATTLE_RANK_WORDS = /^(式舆防卫战|式舆|深渊|防卫战|防卫|危局强袭战|危局|强袭|强袭战|绝境|拟境湮灭战|拟境|湮灭|湮灭战|临界推演|临界|推演|爬塔|鏖战|爬塔S\\d|爬塔s\\d)/;
 
 
 const uidQqCache = new Map();
