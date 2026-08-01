@@ -295,6 +295,13 @@ const helpData = [
                 commands: ['鏖战试炼狂澜排名', '爬塔S4排名'],
             },
             {
+                title: '更新群友挑战记录',
+                desc: '主人一键刷新本群群友的式舆防卫战、危局强袭战、临界推演和爬塔挑战缓存',
+                needCK: true,
+                needSK: false,
+                commands: ['更新挑战记录', '更新群友挑战记录', '更新防卫战记录', '更新危局记录'],
+            },
+            {
                 title: '显示/隐藏深渊排名',
                 desc: '显示/隐藏自己的深渊群排名',
                 needCK: false,
