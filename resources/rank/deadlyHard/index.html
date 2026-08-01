@@ -6,7 +6,7 @@
 
 {{block 'main'}}
 <div class="card">
-  <% include(sys.specialTitle, {en: 'DEADLY RANK' , cn: '危局强袭战排名' }) %>
+  <% include(sys.specialTitle, {en: 'DEADLY HARD RANK' , cn: '危局强袭战绝境排名' }) %>
     {{each scoredData record i}}
     <div class="record">
       <div class="user-info">
@@ -26,20 +26,9 @@
           </div>
           <div class="uid">UID {{player.game_uid}}</div>
         </div>
-        <div class="result">
-          <div class="value">
-            <div class="label">总得分</div>
-            <div class="value">{{record.result.total_score}}</div>
-          </div>
-          <div class="rank">
-            <div class="label">星级</div>
-            <div class="value">{{record.result.total_star}}</div>
-          </div>
-        </div>
-      </div>      
-      <% for(let i=0 ; i < 3 ; i++) { %>
-      {{set team = record.result.list[i]}}
-      <div class="item-card">
+      </div>
+      {{set team = record.result.hard_list[0]}}
+      <div class="item-card hard">
         {{if team}}
         {{if team.buffer && team.buffer[0]}}
         <div class="pop"><img src="{{team.buffer[0].icon}}" alt=""></div>
@@ -51,7 +40,7 @@
               <div class="val">{{team.score}}</div>
               <div class="stars">
                 <% for(let j=0 ; j < team.star ; j++) { %>
-                  <div class="star"></div>
+                  <div class="star hard-star"></div>
                   <% } %>
                     <% for(let j=0 ; j < team.total_star - team.star ; j++) { %>
                       <div class="star inactive"></div>
@@ -97,12 +86,11 @@
         </div>
         {{/if}}
       </div>
-      <% } %>
     </div>
     {{/each}}
     <div class="notes-container">
       <ul class="notes">
-        <li>请在群内查询<span class="command">%危局强袭战</span>，以参与对应群的危局强袭战排名</li>
+        <li>请在群内查询<span class="command">%危局强袭战</span>，以参与对应群的危局强袭战绝境排名</li>
         <li>对于分数持平的情况，会根据分数的更新时间进行排序，更新时间越早的排名越靠前</li>
       </ul>
     </div>

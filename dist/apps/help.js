@@ -246,6 +246,13 @@ const helpData = [
                 commands: ['危局强袭战群内排名', '危局群内排名', '强袭战群内排名'],
             },
             {
+                title: '查看危局绝境排名',
+                desc: '查看危局强袭战绝境群排名',
+                needCK: false,
+                needSK: false,
+                commands: ['绝境排名', '危局绝境排名', '危局强袭战绝境排名', '绝境危局排名'],
+            },
+            {
                 title: '查看拟境湮灭战排名',
                 desc: '查看拟境湮灭战群排名',
                 needCK: false,

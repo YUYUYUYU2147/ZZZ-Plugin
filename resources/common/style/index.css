@@ -174,11 +174,17 @@
 .element-icon.electric, .element-icon.Electric {
   background-image: url("../images/element/Electric.png");
 }
+.element-icon.wind, .element-icon.Wind {
+  background-image: url("../images/element/Wind.png");
+}
 .element-icon.ether, .element-icon.Ether {
   background-image: url("../images/element/Ether.png");
 }
 .element-icon.auricink, .element-icon.AuricInk {
   background-image: url("../images/element/AuricInk.png");
+}
+.element-icon.lumiflux, .element-icon.Lumiflux {
+  background-image: url("../images/element/Lumiflux.png");
 }
 
 .prop-icon {
@@ -243,6 +249,9 @@
 }
 .prop-icon.sheerforce {
   background-image: url("../images/property/IconSheerForce.png");
+}
+.prop-icon.wind {
+  background-image: url("../images/property/IconWind.png");
 }
 
 .pro-icon {
