@@ -24,3 +24,12 @@ eeb1ad4ab2be38f802e96d67f5ab3c97:
 a9f598219354ce6189e61be35e5e309b:
   weakness: 冰
   resistance: 物理
+a409ce5bed844ede7d25b0cf2b0e4497:
+  weakness: 物理 / 风
+  resistance: 火
+6b32f90beb8e567a4d1e5dc14919a977:
+  weakness: 火 / 电
+  resistance: 物理
+b54d5e9aefc998cf1a4956c875804086:
+  weakness: 冰 / 电
+  resistance: 火

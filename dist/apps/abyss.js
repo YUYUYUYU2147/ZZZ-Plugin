@@ -104,6 +104,9 @@ const defaultBossNameMap = {
     '88f46b168ebffe88b028d39a3a349ec5': '秽蚀·多佩冈亚·狛野真斗',
     '4dba90f6c3dc64842c9321dec3bc44d9': '黑比利',
     '8fcca877f246fdb1b978314e0df07c06': '缄枢',
+    'a409ce5bed844ede7d25b0cf2b0e4497': '蜕生·阿瓦鲁斯',
+    '6b32f90beb8e567a4d1e5dc14919a977': '多佩冈亚·星徽·比利',
+    'b54d5e9aefc998cf1a4956c875804086': '盘岳',
 };
 const defaultBossMetaMap = {
     '280944f4e04dea73a92605a2f4ad2469': { weakness: '火 / 物理', resistance: '以太' },
@@ -114,6 +117,9 @@ const defaultBossMetaMap = {
     '88f46b168ebffe88b028d39a3a349ec5': { weakness: '冰', resistance: '物理' },
     '4dba90f6c3dc64842c9321dec3bc44d9': { weakness: '火 / 以太', resistance: '电' },
     '8fcca877f246fdb1b978314e0df07c06': { weakness: '电 / 以太', resistance: '火' },
+    'a409ce5bed844ede7d25b0cf2b0e4497': { weakness: '物理 / 风', resistance: '火' },
+    '6b32f90beb8e567a4d1e5dc14919a977': { weakness: '火 / 电', resistance: '物理' },
+    'b54d5e9aefc998cf1a4956c875804086': { weakness: '冰 / 电', resistance: '火' },
 };
 function getMonsterMeta(item = {}) {
     const direct = normalizeMonsterMeta(item.monster || item.boss || {});
