@@ -3,6 +3,7 @@ import { rulePrefix } from '../lib/common.js';
 import { saveAbyssData } from '../lib/db.js';
 import { ZZZPlugin } from '../lib/plugin.js';
 import settings from '../lib/settings.js';
+import moment from 'moment';
 export class Abyss extends ZZZPlugin {
     isGroupRankAllowed;
     constructor() {
@@ -23,7 +24,8 @@ export class Abyss extends ZZZPlugin {
     async abyss() {
         const { api, deviceFp } = await this.getAPI();
         await this.getPlayerInfo();
-        const method = this.e.msg.match(`(上期|往期)`) ? 'zzzChallengePeriod' : 'zzzChallenge';
+        const isPrev = !!(this.e.msg || '').match(`(上期|往期)`);
+        const method = isPrev ? 'zzzChallengePeriod' : 'zzzChallenge';
         const abyssData = await api.getFinalData(method, {
             deviceFp,
         }).catch((e) => {
@@ -55,7 +57,9 @@ export class Abyss extends ZZZPlugin {
             }
         }
         const abyss = processAbyssData(data);
-        const genshinTplData = toGenshinChallengeData(abyss, uid, this.e?.playerCard?.player, abyssData);
+        // Boss 名称/弱点/抗性优先取 nanoka（随版本自动更新），失败则回退到 abyss_boss_*.yaml
+        const nanokaBosses = await fetchShiyuBosses(isPrev ? -1 : 0);
+        const genshinTplData = toGenshinChallengeData(abyss, uid, this.e?.playerCard?.player, abyssData, nanokaBosses);
         const finalData = {
             abyss,
             ...genshinTplData,
@@ -143,6 +147,120 @@ function getMonsterMeta(item = {}) {
         resistance: extraMeta.resistance || nameMeta.resistance,
     };
 }
+const NANOKA_BASE = 'https://static.nanoka.cc';
+// nanoka 的 monster.element 字段：1 表示弱点，-1 表示抗性
+const NANOKA_ELEMENT_ZH = {
+    physical: '物理',
+    fire: '火',
+    ice: '冰',
+    electric: '电',
+    ether: '以太',
+    wind: '风',
+};
+
+async function fetchJson(url, timeout = 8000) {
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), timeout);
+    try {
+        const res = await fetch(url, { signal: ac.signal });
+        if (!res.ok) return null;
+        return await res.json();
+    }
+    catch (e) {
+        return null;
+    }
+    finally {
+        clearTimeout(timer);
+    }
+}
+
+function pickElementsBySign(element = {}, sign) {
+    return Object.entries(element || {})
+        .filter(([, v]) => Number(v) === sign)
+        .map(([k]) => NANOKA_ELEMENT_ZH[k])
+        .filter(Boolean);
+}
+
+// 把 nanoka zone.name 解析成防线序号(1-5)。
+// 例：剧变节点第一防线→1；房间一/房间二/房间三→第5防线被拆出的子房间，归到第5防线。
+const CN_NUM = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10 };
+function lineFromZoneName(name = '') {
+    if (!name) return null;
+    const m = String(name).match(/第([一二三四五六七八九十]+)防线/);
+    if (m) return CN_NUM[m[1]];
+    if (/房间/.test(name)) return 5; // 第5防线常被拆成 房间一/二/三
+    return null;
+}
+
+/**
+ * 从 nanoka 拉取式舆防卫战的 Boss 信息（名称 / 弱点 / 抗性）
+ * periodOffset: 0 当期，-1 上期
+ * 按防线编号(1-5)分组返回 { [line]: [{name,weakness,resistance,...}] }，失败返回 null
+ */
+async function fetchShiyuBosses(periodOffset = 0) {
+    try {
+        const manifest = await fetchJson(`${NANOKA_BASE}/manifest.json`, 6000);
+        const nv = manifest?.zzz?.latest;
+        if (!nv) return null;
+
+        // 从 shiyu.json 列表按时间窗找当期，避免 version.json 最后一个可能是占位/测试期。
+        // 兼容 live_begin/live_end 与 begin/end 两种字段命名。
+        const list = await fetchJson(`${NANOKA_BASE}/zzz/${nv}/shiyu.json`, 8000);
+        const items = Object.entries(list || {})
+            .map(([k, v]) => ({ id: Number(k), ...v }))
+            .filter(v => Number.isFinite(v.id) && ((v.live_begin || v.begin) && (v.live_end || v.end)))
+            .sort((a, b) => a.id - b.id);
+        if (!items.length) return null;
+
+        const now = moment();
+        let idx = items.findIndex(v => {
+            const begin = moment(v.live_begin || v.begin);
+            const end = moment(v.live_end || v.end);
+            return now.isBetween(begin, end, undefined, '[]');
+        });
+        if (idx < 0) idx = items.length - 1;
+        idx += periodOffset;
+        if (idx < 0) idx = 0;
+        if (idx >= items.length) idx = items.length - 1;
+
+        const id = items[idx].id;
+        const detail = await fetchJson(`${NANOKA_BASE}/zzz/${nv}/zh/shiyu/${id}.json`, 10000);
+        if (!detail?.zone) return null;
+
+        // 按 zone.name 把房间归到对应防线(1-5)。nanoka 第5防线常被拆成
+        // 「房间一/房间二/房间三」等子 zone，不能简单平铺后按序套用，
+        // 否则玩家只打后面防线时会整体错位，把 Boss 张冠李戴。
+        const byLine = {};
+        for (const [zk, z] of Object.entries(detail.zone || {})) {
+            const line = lineFromZoneName(z.name);
+            if (!line) continue;
+            const rooms = Object.entries(z.layer_room || {})
+                .sort(([a], [b]) => Number(a) - Number(b))
+                .map(([, v]) => v);
+            for (const room of rooms) {
+                const monsterEntries = Object.entries(room.monster_list || {})
+                    .sort(([a], [b]) => Number(a) - Number(b));
+                const mon = (monsterEntries.length ? monsterEntries[monsterEntries.length - 1][1] : {}) || {};
+                if (!mon.name) continue;
+                // Boss 自身的弱点/抗性以 monster.element 为准（1=弱点，-1=抗性）。
+                // 不再合并 room.monster_weakness，避免某些房间把「推荐属性」或数据错误混入 Boss 属性。
+                (byLine[line] = byLine[line] || []).push({
+                    name: mon.name,
+                    image: mon.image || '',
+                    weakness: pickElementsBySign(mon.element, 1),
+                    resistance: pickElementsBySign(mon.element, -1),
+                    stats: mon.stats || {},
+                });
+            }
+        }
+        return Object.keys(byLine).length ? byLine : null;
+    }
+    catch (e) {
+        logger?.debug?.(`[ZZZ-Plugin] nanoka 式舆防卫战数据获取失败：${e?.message || e}`);
+        return null;
+    }
+}
+
 const elementIconMap = {
     '物理': 'Physical',
     '火': 'Fire',
@@ -161,17 +279,22 @@ function toElementTags(value = '') {
         .filter(Boolean)
         .map(name => {
         const icon = elementIconMap[name];
-        return icon ? { name, icon: `common/images/element/${icon}.${icon === 'Wind' ? 'svg' : 'png'}` } : { name, icon: '' };
+        return icon ? { name, icon: `common/images/element/${icon}.png` } : { name, icon: '' };
     });
 }
-function toGenshinChallengeData(raw, uid, player = {}, source = {}) {
+function toGenshinChallengeData(raw, uid, player = {}, source = {}, nanokaBosses = null) {
     const layerNames = ['first', 'second', 'third', 'fourth', 'fitfh'];
     const layerNameZH = { first: '一', second: '二', third: '三', fourth: '四', fitfh: '五' };
+    // 游戏 layer(first~fifth) 与 nanoka 防线(1~5) 一一对应（渲染层会加「剧变节点」前缀）
+    const layerLineMap = { first: 1, second: 2, third: 3, fourth: 4, fitfh: 5 };
     const layers = layerNames
         .map(name => ({ name, zh: layerNameZH[name], data: raw?.[`${name}_layer_detail`] }))
         .filter(l => l.data && l.data.layer_challenge_info_list);
     const grade = { S: 0, A: 0, B: 0 };
     for (const layer of layers) {
+        // nanoka 按防线分组返回，按 line 精准对位；玩家只打部分防线也不会整段错位
+        const lineBosses = (nanokaBosses && nanokaBosses[layerLineMap[layer.name]]) || null;
+        let roomIndex = 0;
         for (const item of layer.data.layer_challenge_info_list || []) {
             if (grade[item.rating] !== undefined)
                 grade[item.rating]++;
@@ -180,11 +303,16 @@ function toGenshinChallengeData(raw, uid, player = {}, source = {}) {
             if (item.challenge_time)
                 item.challenge_time_fmt = fmtDate(item.challenge_time);
             const monsterMeta = getMonsterMeta(item);
-            item.monster_name = monsterMeta.name;
-            item.monster_weakness = Array.isArray(monsterMeta.weakness) ? monsterMeta.weakness.join(' / ') : monsterMeta.weakness;
-            item.monster_resistance = Array.isArray(monsterMeta.resistance) ? monsterMeta.resistance.join(' / ') : monsterMeta.resistance;
-            item.monster_weakness_tags = toElementTags(monsterMeta.weakness);
-            item.monster_resistance_tags = toElementTags(monsterMeta.resistance);
+            // nanoka 随版本更新，优先使用；取不到时回退到本地 hash 映射表
+            const nb = lineBosses ? lineBosses[roomIndex] : null;
+            roomIndex++;
+            const weakness = nb?.weakness?.length ? nb.weakness : monsterMeta.weakness;
+            const resistance = nb?.resistance?.length ? nb.resistance : monsterMeta.resistance;
+            item.monster_name = nb?.name || monsterMeta.name;
+            item.monster_weakness = Array.isArray(weakness) ? weakness.join(' / ') : weakness;
+            item.monster_resistance = Array.isArray(resistance) ? resistance.join(' / ') : resistance;
+            item.monster_weakness_tags = toElementTags(weakness);
+            item.monster_resistance_tags = toElementTags(resistance);
         }
     }
     return {

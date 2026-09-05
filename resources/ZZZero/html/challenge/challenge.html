@@ -66,32 +66,42 @@
           </div>
           <div class="boss-info">
             <div class="boss-name">{{item.monster_name || 'BOSS'}}</div>
-            <div class="boss-attrs">
-              <span class="attr-label">弱点</span>
-              {{if item.monster_weakness_tags && item.monster_weakness_tags.length}}
-                {{each item.monster_weakness_tags tag}}
-                <span class="element-tag">
-                  {{if tag.icon}}<img src="{{pluResPath}}{{tag.icon}}" />{{/if}}
-                  <span>{{tag.name}}</span>
-                </span>
-                {{/each}}
-              {{else}}
-                <span class="attr-empty">暂未标注</span>
-              {{/if}}
-            </div>
-            <div class="boss-attrs boss-resist">
-              <span class="attr-label">抗性</span>
-              {{if item.monster_resistance_tags && item.monster_resistance_tags.length}}
-                {{each item.monster_resistance_tags tag}}
-                <span class="element-tag resist-tag">
-                  {{if tag.icon}}<img src="{{pluResPath}}{{tag.icon}}" />{{/if}}
-                  <span>{{tag.name}}</span>
-                </span>
-                {{/each}}
-              {{else}}
-                <span class="attr-empty">暂未标注</span>
-              {{/if}}
-            </div>
+            <table class="boss-attrs" style="border-collapse:separate !important; border-spacing:0 !important; border:none !important; width:auto !important; line-height:normal !important;">
+              <tr>
+                <td style="width:2.4em !important; padding:0 !important; padding-right:8px !important; vertical-align:middle !important; white-space:nowrap !important; text-align:left !important;">弱点</td>
+                <td style="padding:0 !important; vertical-align:middle !important; white-space:nowrap !important;">
+                  <div style="display:flex !important; flex-wrap:nowrap !important; align-items:center !important; gap:8px !important;">
+                    {{if item.monster_weakness_tags && item.monster_weakness_tags.length}}
+                      {{each item.monster_weakness_tags tag}}
+                      <span class="element-tag">
+                        {{if tag.icon}}<img src="{{pluResPath}}{{tag.icon}}" />{{/if}}
+                        <span>{{tag.name}}</span>
+                      </span>
+                      {{/each}}
+                    {{else}}
+                      <span class="attr-empty">暂未标注</span>
+                    {{/if}}
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="width:2.4em !important; padding:0 !important; padding-right:8px !important; vertical-align:middle !important; white-space:nowrap !important; text-align:left !important;">抗性</td>
+                <td style="padding:0 !important; vertical-align:middle !important; white-space:nowrap !important;">
+                  <div style="display:flex !important; flex-wrap:nowrap !important; align-items:center !important; gap:8px !important;">
+                    {{if item.monster_resistance_tags && item.monster_resistance_tags.length}}
+                      {{each item.monster_resistance_tags tag}}
+                      <span class="element-tag resist-tag">
+                        {{if tag.icon}}<img src="{{pluResPath}}{{tag.icon}}" />{{/if}}
+                        <span>{{tag.name}}</span>
+                      </span>
+                      {{/each}}
+                    {{else}}
+                      <span class="attr-empty">暂未标注</span>
+                    {{/if}}
+                  </div>
+                </td>
+              </tr>
+            </table>
           </div>
         </div>
         {{/if}}

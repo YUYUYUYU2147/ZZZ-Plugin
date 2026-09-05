@@ -34,6 +34,42 @@
         </div>
         <div class="info">
           <div class="title">{{item.boss.name}}</div>
+          <table class="boss-attrs" style="border-collapse:separate !important; border-spacing:0 !important; border:none !important; width:auto !important; line-height:normal !important; margin-top:6px !important;">
+            <tr>
+              <td style="width:2.4em !important; padding:0 !important; padding-right:8px !important; vertical-align:middle !important; white-space:nowrap !important; text-align:left !important;">弱点</td>
+              <td style="padding:0 !important; vertical-align:middle !important; white-space:nowrap !important;">
+                <div style="display:flex !important; flex-wrap:nowrap !important; align-items:center !important; gap:8px !important;">
+                  {{if item.boss.monster_weakness_tags && item.boss.monster_weakness_tags.length}}
+                    {{each item.boss.monster_weakness_tags tag}}
+                    <span class="element-tag" style="display:inline-flex !important; align-items:center !important; vertical-align:middle !important; white-space:nowrap !important;">
+                      {{if tag.icon}}<img src="{{pluResPath}}{{tag.icon}}" style="display:inline-block !important; vertical-align:middle !important; width:18px; height:18px; object-fit:contain;" />{{/if}}
+                      <span style="vertical-align:middle !important;">{{tag.name}}</span>
+                    </span>
+                    {{/each}}
+                  {{else}}
+                    <span class="attr-empty">暂未标注</span>
+                  {{/if}}
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="width:2.4em !important; padding:0 !important; padding-right:8px !important; vertical-align:middle !important; white-space:nowrap !important; text-align:left !important;">抗性</td>
+              <td style="padding:0 !important; vertical-align:middle !important; white-space:nowrap !important;">
+                <div style="display:flex !important; flex-wrap:nowrap !important; align-items:center !important; gap:8px !important;">
+                  {{if item.boss.monster_resistance_tags && item.boss.monster_resistance_tags.length}}
+                    {{each item.boss.monster_resistance_tags tag}}
+                    <span class="element-tag resist-tag" style="display:inline-flex !important; align-items:center !important; vertical-align:middle !important; white-space:nowrap !important;">
+                      {{if tag.icon}}<img src="{{pluResPath}}{{tag.icon}}" style="display:inline-block !important; vertical-align:middle !important; width:18px; height:18px; object-fit:contain;" />{{/if}}
+                      <span style="vertical-align:middle !important;">{{tag.name}}</span>
+                    </span>
+                    {{/each}}
+                  {{else}}
+                    <span class="attr-empty">暂未标注</span>
+                  {{/if}}
+                </div>
+              </td>
+            </tr>
+          </table>
           <div class="score-line">
             <div class="score">{{item.score}}</div>
             <div class="star-icons">
@@ -74,7 +110,7 @@
               <img class="buff-icon" src="{{item.buffer.icon}}" />
               <span class="buff-name">{{item.buffer.name}}</span>
             </div>
-            <div class="buff-desc">{{item.buffer.desc}}</div>
+            <div class="buff-desc" style="white-space:pre-line;">{{item.buffer.desc}}</div>
           </div>
         </div>
       </div>
