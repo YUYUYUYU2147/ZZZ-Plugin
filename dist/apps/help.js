@@ -81,6 +81,20 @@ const helpData = [
                 needSK: false,
                 commands: ['抽卡分析', '抽卡记录', '抽卡统计'],
             },
+            {
+                title: '导出抽卡记录',
+                desc: '把本地已存的逐抽记录导出为UIGF v2的json文件，可用于备份或迁移到其他插件',
+                needCK: false,
+                needSK: false,
+                commands: ['导出抽卡记录', '导出记录'],
+            },
+            {
+                title: '导入抽卡记录',
+                desc: '发送指令后再把抽卡记录文件（或文件链接）发给机器人，按抽卡id去重并入本地记录',
+                needCK: false,
+                needSK: false,
+                commands: ['导入抽卡记录', '导入记录'],
+            },
         ],
     },
     {

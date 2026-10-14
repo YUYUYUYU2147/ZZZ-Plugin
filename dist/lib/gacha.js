@@ -5,6 +5,7 @@ import { getLevelFromList } from './gacha/tool.js';
 import { SingleGachaLog } from '../model/gacha.js';
 import { sleep } from '../utils/time.js';
 import { rank } from './convert.js';
+import { isUpBySchedule, isUpByLegacy } from './gacha/isup.js';
 export const updateGachaLog = async (authKey, uid, region, game_biz) => {
     const previousLog = getGachaLog(uid) || {};
     const newCount = {};
@@ -106,8 +107,51 @@ export const anaylizeGachaLog = async (uid) => {
         return null;
     }
     const result = [];
+    // 「XX导入」是导入指令存下的记录：按 id 并回对应主池一起展示。
+    // 先扫一遍收集完再处理主池 —— Object.keys 的顺序是「主池在前、导入区段在后」。
+    const importMap = {};
     for (const name of Object.keys(savedData)) {
-        const data = savedData[name].map(item => new SingleGachaLog(item));
+        if (!name.endsWith('导入')) continue;
+        importMap[name.replace(/导入$/, '')] = savedData[name] || [];
+    }
+    for (const name of Object.keys(savedData)) {
+        if (name.endsWith('导入')) continue;
+        // 导入记录按 id 并回主序列（统一倒序），与官方数据同池展示。
+        // 它们的抽数用自带 count，不用下标差 —— 外部来源没有完整逐抽行，
+        // 下标差算出来必然是 1。
+        // 按「名称+时间」去重：xhh 导出的历史条目与官方数据大量重叠，
+        // 不去重会出现同一颗五星级两次、相邻显示 1 抽。
+        // 同一颗若两边都有，取带真实垫抽数（count>1）的那条 —— 官方序列里
+        // 那些只标了 S 级、没有逐抽行的记录 count 恒为 1。
+        const official = savedData[name] || [];
+        // 去重只针对「导入 vs 官方」，官方自身必须原样保留 ——
+        // 官方一次十连里同名的四星可能撞在同一秒（实测独家重映 90 条里有 17 条被误并），
+        // 用 name+time 建 Map 会把官方自己的重复行也吃掉，抽卡总数凭空少一截。
+        const seenKey = new Set(official.map(item => `${item?.name}|${item?.time}`));
+        const merged = [...official];
+        for (const item of importMap[name] || []) {
+            // 只并入 S 级：卡片上只画 S 级格子，四星并进来既看不见又会打乱下标差
+            if (item?.rank_type !== '4') continue;
+            const k = `${item?.name}|${item?.time}`;
+            if (seenKey.has(k)) {
+                // 同一颗官方也有：保留官方那条（统计要用），但把真实垫抽数借过来
+                const hit = official.find(o => `${o?.name}|${o?.time}` === k);
+                if (hit && Number(hit.count) <= 1 && Number(item?.count) > 1) hit.count = item.count;
+                continue;
+            }
+            seenKey.add(k);
+            merged.push(item);
+        }
+        const mergedList = merged.map(item => new SingleGachaLog(item));
+        mergedList.sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+        // 区分来源：导入条目没有对应的逐抽行，混进统计分母会把
+        // 「平均出金 / 平均UP / 不歪率」全部算低（分母多一颗五星、分子没多抽数）
+        const officialIds = new Set(official.map(item => String(item?.id ?? '')));
+        for (const item of mergedList) item.is_imported = !officialIds.has(String(item.id));
+        const data = mergedList;
+        // 统计口径另走官方序列：lastFive/总抽数/五星数都只按官方逐抽行算，
+        // 导入条目只进展示列表，否则分母多一颗五星、分子没多抽数，平均值会整体偏低
+        const officialData = data.filter(item => !item.is_imported);
         const earliest = data[data.length - 1];
         const latest = data[0];
         const list = [];
@@ -118,26 +162,36 @@ export const anaylizeGachaLog = async (uid) => {
             let isUp = true;
             if (item.rank_type === '4') {
                 await item.get_assets();
-                if (NORMAL_LIST.includes(item.name)) {
+                // 优先按卡池日程表判：重映池抽到当期 UP 就该标 UP，
+                // 而 3.1 定制调频的硬编码名单会把往期角色一律判歪
+                const bySchedule = isUpBySchedule(name, item.name, item.time);
+                if (bySchedule !== undefined) {
+                    isUp = bySchedule;
+                } else if (!isUpByLegacy(item)) {
                     isUp = false;
                 }
-                if (new Date(item.time).getTime() > new Date('2026-07-29 00:00:00').getTime()) {
-                    const isCustomFmLeak = CUSTOM_FM_LEAK_LIMIT_LIST.includes(+item.item_id) ||
-                        (!NORMAL_LIST.includes(item.name) && !CUSTOM_FM_CURRENT_UP_LIST.includes(item.name) && ['代理人', '音擎'].includes(item.item_type));
-                    if (isCustomFmLeak) {
-                        isUp = false;
-                    }
-                }
-                if (lastFive === null) {
-                    lastFive = i;
+                // 「已垫 N 抽未出S级」= 最新一颗 S 级**之后新抽了多少**（序列按 id 倒序，
+                // 即它在官方序列里的下标），只能按官方行算，导入条目不占抽数
+                if (lastFive === null && !item.is_imported) {
+                    const firstS = officialData.findIndex(it => it.rank_type === '4');
+                    lastFive = firstS >= 0 ? firstS : 0;
                 }
                 if (list.length > 0) {
-                    list[list.length - 1]['totalCount'] = (i - preIndex).toString();
-                    if (i - preIndex <= FLOORS_MAP[name][0]) {
+                    // 上一条 S 级的抽数：自带 count 优先（导入来源），否则用下标差。
+                    // 配色必须跟着「实际显示的抽数」走，否则导入来源的条目会一律判成
+                    // 下标差 1、全部染成绿色（小保底色），与显示的数字自相矛盾。
+                    const prev = list[list.length - 1];
+                    const own = Number(prev.count) > 1 ? Number(prev.count) : null;
+                    const draws = own || (i - preIndex);
+                    list[list.length - 1]['totalCount'] = String(draws);
+                    if (draws <= FLOORS_MAP[name][0]) {
                         list[list.length - 1]['color'] = 'rgb(63, 255, 0)';
                     }
-                    else if (i - preIndex >= FLOORS_MAP[name][1]) {
+                    else if (draws >= FLOORS_MAP[name][1]) {
                         list[list.length - 1]['color'] = 'rgb(255, 20, 20)';
+                    }
+                    else {
+                        list[list.length - 1]['color'] = 'white';
                     }
                 }
                 list.push({
@@ -150,19 +204,32 @@ export const anaylizeGachaLog = async (uid) => {
                 preIndex = i;
             }
             if (i === data.length - 1 && list.length > 0) {
-                list[list.length - 1]['totalCount'] = (i - preIndex + 1).toString();
-                if (i - preIndex + 1 <= FLOORS_MAP[name][0]) {
+                // 列表最后一条 S 级：它后面没有下一颗来触发赋值，只能在此处收尾。
+                // 同样优先用自带 count —— 否则导入来源的最后一条会恒显示 1 抽。
+                const last = list[list.length - 1];
+                const ownLast = Number(last.count) > 1 ? Number(last.count) : null;
+                const drawsLast = ownLast || (i - preIndex + 1);
+                list[list.length - 1]['totalCount'] = String(drawsLast);
+                if (drawsLast <= FLOORS_MAP[name][0]) {
                     list[list.length - 1]['color'] = 'rgb(63, 255, 0)';
                 }
-                else if (i - preIndex + 1 >= FLOORS_MAP[name][1]) {
+                else if (drawsLast >= FLOORS_MAP[name][1]) {
                     list[list.length - 1]['color'] = 'rgb(255, 20, 20)';
+                }
+                else {
+                    list[list.length - 1]['color'] = 'white';
                 }
             }
             i++;
         }
+        // 抽卡总数 = 每颗 S 级的垫抽数之和 + 当前已垫的抽数。
+        // 不能用「逐抽行条数」—— 导入来源的 S 级没有对应的逐抽行，按行数算会凭空少一截
+        // （独家重映 1+9+80=90 就是这么来的）。
+        const officialList = list.filter(i => !i.is_imported);
         const upCount = list.filter(i => i.isUp).length;
-        const totalCount = data.length;
         const fiveStars = list.length;
+        const pitySum = list.reduce((sum, i) => sum + (Number(i.totalCount) > 0 ? Number(i.totalCount) : 0), 0);
+        const totalCount = pitySum + (typeof lastFive === 'number' ? lastFive : 0);
         let timeRange = '还没有抽卡';
         let avgFive = '-';
         let avgUp = '-';
